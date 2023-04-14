@@ -203,3 +203,21 @@ function setDefaultCondition(element: Connection, isDefault: boolean) {
   const modeling = modeler().getModeling
   modeling.updateProperties(element.source, { default: isDefault ? element : undefined })
 }
+
+export function isUserTask(element: BpmnElement): boolean {
+  return is(element, 'bpmn:UserTask')
+}
+
+export function isSequenceFlow(element: BpmnElement): boolean {
+  return is(element, 'bpmn:SequenceFlow')
+}
+export function isAllowBack(element: BpmnElement): boolean {
+  if (isUserTask(element)) {
+    const prefix = editor().getProcessEngine
+    const buttons = element.businessObject.get(`${prefix}:buttons`)
+    if (buttons && buttons.split(',').indexOf('rollback') > -1) {
+      return true
+    }
+  }
+  return false
+}

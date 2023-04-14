@@ -166,15 +166,6 @@ class RewritePaletteProvider extends PaletteProvider {
         'bpmn-icon-service-task',
         '服务任务'
       ),
-      'create.sql-task': {
-        group: 'activity',
-        className: 'miyue-sql-task',
-        title: '数据库任务',
-        action: {
-          click: createSqlTask,
-          dragstart: createSqlTask
-        }
-      },
       'create.subprocess-expanded': {
         group: 'activity',
         className: 'bpmn-icon-subprocess-expanded',

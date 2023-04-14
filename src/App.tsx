@@ -3,7 +3,6 @@ import Toolbar from '@/components/Toolbar'
 import Palette from '@/components/Palette'
 import Designer from '@/components/Designer'
 import Panel from '@/components/Panel'
-import Setting from '@/components/Setting'
 import ContextMenu from '@/components/ContextMenu/index.vue'
 import { EditorSettings } from 'types/editor/settings'
 import { defaultSettings } from '@/config'
@@ -62,7 +61,6 @@ const App = defineComponent({
                   <div class="camunda-penal" id="camunda-penal"></div>
                 )}
               </div>
-              <Setting v-model={[editorSettings.value, 'settings']}></Setting>
               <ContextMenu></ContextMenu>
             </NMessageProvider>
           </div>

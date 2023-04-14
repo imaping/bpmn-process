@@ -50,5 +50,11 @@ export default {
   operations: '操作',
   edit: '编辑',
   remove: '移除',
-  confirm: '确认'
+  confirm: '确认',
+
+  taskListeners: '任务监听器',
+  addTaskListener: '添加任务监听器',
+  taskListenerEventType: '事件类型',
+  taskListenerType: '监听器类型',
+  taskBack: '退回'
 }

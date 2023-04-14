@@ -1,4 +1,4 @@
-import { defineComponent, Component, markRaw, onMounted, ref } from 'vue'
+import { Component, defineComponent, markRaw, onMounted, reactive, ref } from 'vue'
 import { NCollapse } from 'naive-ui'
 import { Base, Connection, Label, Shape } from 'diagram-js/lib/model'
 import { Translate } from 'diagram-js/lib/i18n/translate'
@@ -6,31 +6,29 @@ import debounce from 'lodash.debounce'
 
 import EventEmitter from '@/utils/EventEmitter'
 import modelerStore from '@/store/modeler'
+import userTaskStore from '@/store/userTask'
 import Logger from '@/utils/Logger'
 
 import getBpmnIconType from '@/bpmn-icons/getIconType'
 import bpmnIcons from '@/bpmn-icons'
 import BpmnIcon from '@/components/common/BpmnIcon.vue'
-
-import { isAsynchronous } from '@/bo-utils/asynchronousContinuationsUtil'
 import { isExecutable } from '@/bo-utils/executionListenersUtil'
-import { isJobExecutable } from '@/bo-utils/jobExecutionUtil'
 import { isStartInitializable } from '@/bo-utils/initiatorUtil'
 
 import ElementGenerations from './components/ElementGenerations.vue'
 import ElementConditional from './components/ElementConditional.vue'
-import ElementDocumentations from './components/ElementDocumentations.vue'
 import ElementExecutionListeners from './components/ElementExecutionListeners.vue'
+import ElementTaskListeners from './components/ElementTaskListeners.vue'
+import ElementTaskBack from './components/ElementTaskBack.vue'
 import ElementExtensionProperties from './components/ElementExtensionProperties.vue'
-import ElementAsyncContinuations from './components/ElementAsyncContinuations.vue'
-import ElementJobExecution from './components/ElementJobExecution.vue'
 import ElementStartInitiator from './components/ElementStartInitiator.vue'
-import { isCanbeConditional } from '@/bo-utils/conditionUtil'
+import { isCanbeConditional, isUserTask } from '@/bo-utils/conditionUtil'
 import { customTranslate } from '@/additional-modules/Translate'
 
 const Panel = defineComponent({
   name: 'PropertiesPanel',
   setup() {
+    const taskStore = userTaskStore()
     const modeler = modelerStore()
     const panel = ref<HTMLDivElement | null>(null)
     const currentElementId = ref<string | undefined>(undefined)
@@ -40,19 +38,26 @@ const Panel = defineComponent({
     const bpmnIconName = ref<string>('Process')
     const bpmnElementName = ref<string>('Process')
 
-    const renderComponents = markRaw<Component[]>([])
+    const renderComponents = reactive<Component[]>([])
+
+    taskStore.$subscribe((mutation, state) => {
+      const active = modeler.getActive
+      if (active) {
+        setCurrentComponents(active)
+      }
+    })
 
     const setCurrentComponents = (element: BpmnElement) => {
       // 清空
       renderComponents.splice(0, renderComponents.length)
       renderComponents.push(ElementGenerations)
-      renderComponents.push(ElementDocumentations)
+      isUserTask(element) && taskStore.isAllowBack && renderComponents.push(ElementTaskBack)
       isCanbeConditional(element) && renderComponents.push(ElementConditional)
-      isJobExecutable(element) && renderComponents.push(ElementJobExecution)
-      renderComponents.push(ElementExtensionProperties)
       isExecutable(element) && renderComponents.push(ElementExecutionListeners)
-      isAsynchronous(element) && renderComponents.push(ElementAsyncContinuations)
+      isUserTask(element) && renderComponents.push(ElementTaskListeners)
       isStartInitializable(element) && renderComponents.push(ElementStartInitiator)
+      console.log(renderComponents)
+      renderComponents.push(ElementExtensionProperties)
     }
 
     // 设置选中元素，更新 store

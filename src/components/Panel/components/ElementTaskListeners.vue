@@ -1,7 +1,7 @@
 <template>
-  <n-collapse-item name="element-execution-listeners">
+  <n-collapse-item name="element-task-listeners">
     <template #header>
-      <collapse-title :title="$t('panel.executionListeners')">
+      <collapse-title :title="$t('panel.taskListeners')">
         <lucide-icon name="Radio" />
       </collapse-title>
     </template>
@@ -15,14 +15,14 @@
 
       <n-button type="info" class="inline-large-button" secondary @click="openListenerModel(-1)">
         <lucide-icon :size="20" name="Plus" />
-        <span>{{ $t('panel.addExecutionListener') }}</span>
+        <span>{{ $t('panel.addTaskListener') }}</span>
       </n-button>
     </div>
 
     <n-modal
       v-model:show="modelVisible"
       preset="dialog"
-      :title="$t('panel.addExecutionListener')"
+      :title="$t('panel.addTaskListener')"
       :style="{ width: '640px' }"
     >
       <n-form
@@ -32,10 +32,10 @@
         class="need-filled"
         aria-modal="true"
       >
-        <n-form-item path="event" :label="$t('panel.executionListenerEventType')">
+        <n-form-item path="event" :label="$t('panel.taskListenerEventType')">
           <n-select v-model:value="newListener.event" :options="listenerEventTypeOptions" />
         </n-form-item>
-        <n-form-item path="type" :label="$t('panel.executionListenerType')">
+        <n-form-item path="type" :label="$t('panel.taskListenerType')">
           <n-select
             v-model:value="newListener.type"
             :options="listenerTypeOptions"
@@ -101,7 +101,7 @@
         </template>
       </n-form>
       <template #action>
-        <n-button size="small" type="info" @click="saveExecutionListener"
+        <n-button size="small" type="info" @click="saveTaskListener"
           >{{ $t('panel.confirm') }}
         </n-button>
       </template>
@@ -110,37 +110,27 @@
 </template>
 
 <script lang="ts">
-  import {
-    defineComponent,
-    h,
-    markRaw,
-    ref,
-    computed,
-    nextTick,
-    onMounted,
-    ComputedRef,
-    reactive
-  } from 'vue'
+  import { defineComponent, h, markRaw, ref, computed, nextTick, onMounted, ComputedRef } from 'vue'
   import { FormInst, FormRules, DataTableColumns, NButton } from 'naive-ui'
   import modeler from '@/store/modeler'
   import { ModdleElement } from 'bpmn-moddle'
   import { Base } from 'diagram-js/lib/model'
-  import {
-    addExecutionListener,
-    getDefaultEvent,
-    getExecutionListeners,
-    getExecutionListenerType,
-    getExecutionListenerTypes,
-    removeExecutionListener,
-    updateExecutionListener
-  } from '@/bo-utils/executionListenersUtil'
   import { getScriptType } from '@/bo-utils/scriptUtil'
   import EventEmitter from '@/utils/EventEmitter'
   import { useI18n } from 'vue-i18n'
+  import {
+    getTaskListenerType,
+    getTaskListeners,
+    addTaskListener,
+    getTaskListenerTypes,
+    getDefaultEvent,
+    removeTaskListener,
+    updateTaskListener
+  } from '@/bo-utils/taskUtil'
 
   export default defineComponent({
-    name: 'ElementExecutionListeners',
-    setup() {
+    name: 'ElementTaskListeners',
+    setup: function () {
       const { t } = useI18n()
       const modelerStore = modeler()
       const getActive = computed(() => modelerStore.getActive!)
@@ -150,25 +140,28 @@
 
       const modelVisible = ref(false)
       const listeners = ref<ExecutionListenerForm[]>([])
-      const newListener = reactive<ExecutionListenerForm>({ event: '', type: 'class' })
+      const newListener = ref<ExecutionListenerForm>({ event: '', type: 'class' })
       const formRef = ref<FormInst | null>(null)
       const formItemVisible = ref<FormItemVisible>({
         listenerType: 'class',
         scriptType: 'none'
       })
 
-      const listenerEventTypeOptions = ref<Record<string, string>[]>([
-        { label: 'Start', value: 'start' },
-        { label: 'End', value: 'end' },
-        { label: 'Take', value: 'take' }
+      const listenerEventTypeOptions = ref([
+        { label: '创建', value: 'create' },
+        { label: '指派', value: 'assignment' },
+        { label: '完成', value: 'complete' },
+        { label: '删除', value: 'delete' },
+        { label: '更新', value: 'update' },
+        { label: '超时', value: 'timeout' }
       ])
-      const listenerTypeOptions = ref<Record<string, string>[]>([
+      const listenerTypeOptions = ref([
         { label: 'Java Class', value: 'class' },
         { label: 'Expression', value: 'expression' },
         { label: 'DelegateExpression', value: 'delegateExpression' },
         { label: 'Script', value: 'script' }
       ])
-      const scriptTypeOptions = ref<Record<string, string>[]>([
+      const scriptTypeOptions = ref([
         { label: 'External Resource', value: 'external' },
         { label: 'Inline Script', value: 'inline' },
         { label: 'None', value: 'none' }
@@ -232,8 +225,8 @@
         modelVisible.value = false
         updateListenerType('class')
         newListener.value = { event: getDefaultEvent(getActive.value), type: 'class' }
-        listenerEventTypeOptions.value = getExecutionListenerTypes(getActive.value)
-        ;(listenersRaw as ModdleElement[]) = markRaw(getExecutionListeners(getActive.value as Base))
+        listenerEventTypeOptions.value = getTaskListenerTypes(getActive.value)
+        ;(listenersRaw as ModdleElement[]) = markRaw(getTaskListeners(getActive.value as Base))
         const list = listenersRaw.map(
           (item: ModdleElement & BpmnExecutionListener): ExecutionListenerForm => ({
             ...item,
@@ -245,7 +238,7 @@
                   }
                 }
               : {}),
-            type: getExecutionListenerType(item)
+            type: getTaskListenerType(item)
           })
         )
         listeners.value = JSON.parse(JSON.stringify(list))
@@ -253,11 +246,11 @@
 
       const removeListener = (index: number) => {
         const listener: ModdleElement = listenersRaw[index]
-        removeExecutionListener(getActive.value, listener)
+        removeTaskListener(getActive.value, listener)
         reloadExtensionListeners()
       }
 
-      const saveExecutionListener = async () => {
+      const saveTaskListener = async () => {
         await formRef.value!.validate()
         switch (newListener.value.type) {
           case 'class':
@@ -283,9 +276,8 @@
             break
         }
         activeIndex === -1
-          ? addExecutionListener(getActive.value, newListener.value)
-          : updateExecutionListener(getActive.value, newListener.value, listenersRaw[activeIndex])
-
+          ? addTaskListener(getActive.value, newListener.value)
+          : updateTaskListener(getActive.value, newListener.value, listenersRaw[activeIndex])
         reloadExtensionListeners()
       }
 
@@ -318,7 +310,7 @@
         listenerTypeOptions,
         scriptTypeOptions,
         removeListener,
-        saveExecutionListener,
+        saveTaskListener,
         openListenerModel,
         updateListenerType,
         updateScriptType

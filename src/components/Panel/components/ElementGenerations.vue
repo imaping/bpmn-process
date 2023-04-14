@@ -23,12 +23,18 @@
         <n-switch v-model:value="elementExecutable" @update:value="updateElementExecutable" />
       </edit-item>
     </template>
+
+    <template v-if="isUserTask">
+      <edit-item v-for="button in taskButtons.value" :key="button.code" :label="button.name">
+        <n-switch v-model:value="button.switchValue" @update:value="handleSwitch(button)" />
+      </edit-item>
+    </template>
   </n-collapse-item>
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
-  import { mapState } from 'pinia'
+  import { defineComponent, ref, watch } from 'vue'
+  import { mapState, mapActions } from 'pinia'
   import modelerStore from '@/store/modeler'
   import { Base } from 'diagram-js/lib/model'
   import { getNameValue, setNameValue } from '@/bo-utils/nameUtil'
@@ -40,6 +46,10 @@
     setProcessVersionTag
   } from '@/bo-utils/processUtil'
   import EventEmitter from '@/utils/EventEmitter'
+  import axios from '@/axios'
+  import { getTaskButtons, setTaskButtons } from '@/bo-utils/taskUtil'
+  import userTaskStore from '@/store/userTask'
+  import { setRollbackButton } from '@/bo-utils/taskUtil'
 
   export default defineComponent({
     name: 'ElementGenerations',
@@ -49,7 +59,10 @@
         elementName: '',
         elementVersion: '',
         elementExecutable: true,
-        isProcess: false
+        isProcess: false,
+        isUserTask: false,
+        taskButtons: ref([]),
+        elementTaskButtons: []
       }
     },
     computed: {
@@ -60,13 +73,25 @@
       EventEmitter.on('element-update', this.reloadGenerationData)
     },
     methods: {
-      reloadGenerationData() {
+      ...mapActions(userTaskStore, { setAllowBack: 'setAllowBack' }),
+      reloadGenerationData: function () {
         this.isProcess = !!this.getActive && this.getActive.type === 'bpmn:Process'
+        this.isUserTask = !!this.getActive && this.getActive.type === 'bpmn:UserTask'
         this.elementId = this.getActiveId as string
         this.elementName = getNameValue(this.getActive as Base) || ''
         if (this.isProcess) {
           this.elementExecutable = getProcessExecutable(this.getActive as Base)
           this.elementVersion = getProcessVersionTag(this.getActive as Base) || ''
+        }
+        if (this.isUserTask) {
+          const buttons = getTaskButtons(this.getActive as Base)
+          if (buttons) {
+            this.elementTaskButtons = buttons.split(',')
+          } else {
+            this.elementTaskButtons = []
+          }
+          this.getButtonsMeteData()
+          this.setAllowBack(this.elementTaskButtons.indexOf('rollback') > -1)
         }
       },
       updateElementName(value: string) {
@@ -85,6 +110,48 @@
       },
       updateElementExecutable(value: boolean) {
         setProcessExecutable(this.getActive as Base, value)
+      },
+      handleSwitch(button) {
+        if (button.value === 'rollback') {
+          this.setAllowBack(button.switchValue)
+          if (!button.switchValue) {
+            setRollbackButton(this.getActive as Base, false)
+          } else {
+            setRollbackButton(this.getActive as Base, true, '2')
+          }
+          return
+        }
+        const index = this.elementTaskButtons.indexOf(button.value)
+        if (button.switchValue && index == -1) {
+          this.elementTaskButtons.push(button.value)
+        }
+        if (!button.switchValue && index > -1) {
+          this.elementTaskButtons.splice(index, 1)
+        }
+        if (this.elementTaskButtons.length == 0) {
+          setTaskButtons(this.getActive as Base, undefined)
+        } else {
+          setTaskButtons(this.getActive as Base, this.elementTaskButtons.join(','))
+        }
+      },
+      getButtonsMeteData() {
+        axios.get('/management/rest/base-data-category/HJAN/base-datas').then((response) => {
+          this.taskButtons.value = []
+          if (response.data.status === 1) {
+            for (let index in response.data.content) {
+              let buttonMete = response.data.content[index]
+              const picked = (({ name, description, code, value }) => ({
+                name,
+                description,
+                code,
+                value,
+                switchValue: false
+              }))(buttonMete)
+              picked.switchValue = this.elementTaskButtons.indexOf(picked.value) > -1
+              this.taskButtons.value.push(picked)
+            }
+          }
+        })
       }
     }
   })

@@ -6,24 +6,14 @@ import type { EditorSettings } from 'types/editor/settings'
 import TokenSimulationModule from 'bpmn-js-token-simulation'
 
 // moddle 定义文件
-import activitiModdleDescriptors from '@/moddle-extensions/activiti.json'
-import camundaModdleDescriptors from '@/moddle-extensions/camunda.json'
 import flowableModdleDescriptors from '@/moddle-extensions/flowable.json'
-import MiyueModdleDescriptors from '@/moddle-extensions/miyue.json'
 
 // camunda 官方侧边栏扩展
-import {
-  BpmnPropertiesPanelModule,
-  BpmnPropertiesProviderModule,
-  CamundaPlatformPropertiesProviderModule
-} from 'bpmn-js-properties-panel'
-
-import CamundaExtensionModule from 'camunda-bpmn-moddle/resources/camunda.json'
+import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule } from 'bpmn-js-properties-panel'
 
 // 官方扩展工具 元素模板选择
 // import ElementTemplateChooserModule from '@bpmn-io/element-template-chooser'
 // import ConnectorsExtensionModule from 'bpmn-js-connectors-extension'
-
 import Grid from 'diagram-js/lib/features/grid-snapping/visuals'
 
 // 自定义 modules 扩展模块
@@ -35,8 +25,6 @@ import EnhancementPalette from '@/additional-modules/Palette/EnhancementPalette'
 import RewritePalette from '@/additional-modules/Palette/RewritePalette'
 import EnhancementContextPad from '@/additional-modules/ContextPad/EnhancementContextPad'
 import RewriteContextPad from '@/additional-modules/ContextPad/RewriteContextPad'
-import EnhancementRenderer from '@/additional-modules/Renderer/EnhancementRenderer'
-import RewriteRenderer from '@/additional-modules/Renderer/RewriteRenderer'
 
 // 流程图校验部分
 import lintModule from 'bpmn-js-bpmnlint'
@@ -68,40 +56,10 @@ export default function (settings: Ref<EditorSettings>): ModulesAndModdles {
   settings.value.contextPadMode === 'enhancement' && modules.push(EnhancementContextPad)
   settings.value.contextPadMode === 'rewrite' && modules.push(RewriteContextPad)
 
-  // 配置 自定义渲染
-  settings.value.rendererMode === 'enhancement' && modules.push(EnhancementRenderer)
-  if (settings.value.rendererMode === 'rewrite') {
-    modules.push(RewriteRenderer)
-    options['bpmnRenderer'] = { ...toRaw(settings.value).customTheme }
-  }
-
   // 配置模板选择弹窗（会影响默认 popupmenu）
   if (settings.value.templateChooser || settings.value.penalMode !== 'custom') {
-    modules.push(
-      BpmnPropertiesPanelModule,
-      BpmnPropertiesProviderModule,
-      CamundaPlatformPropertiesProviderModule,
-      CamundaExtensionModule
-    )
+    modules.push(BpmnPropertiesPanelModule, BpmnPropertiesProviderModule)
     moddle = {}
-    if (settings.value.penalMode !== 'custom') {
-      options['propertiesPanel'] = { parent: '#camunda-penal' }
-      moddle['camunda'] = camundaModdleDescriptors
-    }
-    // if (settings.value.templateChooser) {
-    //   modules.push(
-    //     CloudElementTemplatesPropertiesProviderModule,
-    //     ElementTemplateChooserModule,
-    //     ConnectorsExtensionModule
-    //   )
-    //   options['exporter'] = {
-    //     name: 'element-template-chooser',
-    //     version: '0.0.1'
-    //   }
-    //   options['connectorsExtension'] = {
-    //     appendAnything: true
-    //   }
-    // }
   }
 
   // 设置 lint 校验
@@ -144,23 +102,18 @@ export default function (settings: Ref<EditorSettings>): ModulesAndModdles {
 
     modules.push(ElementFactory)
     options['elementFactory'] = {
-      'bpmn:Task': { width: 120, height: 120 },
-      'bpmn:SequenceFlow': { width: 100, height: 80 }
+      // 'bpmn:Task': { width: 120, height: 120 },
+      // 'bpmn:SequenceFlow': { width: 100, height: 80 }
     }
   }
 
   // 配置 翻译 与 流程模拟
   modules.push(translate)
 
-  // 设置对应的 moddle 解析配置文件 ( 避免上面已经配置了 camunda )
+  // 设置对应的 moddle 解析配置文件
   if (!Object.keys(moddle).length) {
-    if (settings.value.processEngine === 'activiti') moddle['activiti'] = activitiModdleDescriptors
-    if (settings.value.processEngine === 'camunda') moddle['camunda'] = camundaModdleDescriptors
     if (settings.value.processEngine === 'flowable') moddle['flowable'] = flowableModdleDescriptors
   }
-
-  // 设置自定义属性
-  moddle['miyue'] = MiyueModdleDescriptors
 
   return [modules, moddle, options]
 }
