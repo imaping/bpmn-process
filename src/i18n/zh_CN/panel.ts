@@ -56,5 +56,8 @@ export default {
   addTaskListener: '添加任务监听器',
   taskListenerEventType: '事件类型',
   taskListenerType: '监听器类型',
-  taskBack: '退回'
+  taskBack: '退回',
+  taskMember: '节点人员',
+  taskForm: '表单',
+  addForm: '添加表单'
 }

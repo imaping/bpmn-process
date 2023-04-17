@@ -2,7 +2,7 @@
   <n-collapse-item name="element-task-listeners">
     <template #header>
       <collapse-title :title="$t('panel.taskListeners')">
-        <lucide-icon name="Radio" />
+        <lucide-icon name="ClipboardList" />
       </collapse-title>
     </template>
     <template #header-extra>

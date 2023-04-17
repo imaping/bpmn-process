@@ -3,6 +3,7 @@ import Modeler from 'bpmn-js/lib/Modeler'
 import EventEmitter from '@/utils/EventEmitter'
 import modelerStore from '@/store/modeler'
 import EnhancementContextmenu from '@/additional-functions/EnhancementContextmenu'
+import EnhancementUserTask from '@/additional-functions/EnhancementUserTask'
 
 import type { BaseViewerOptions } from 'bpmn-js/lib/BaseViewer'
 import type { ModulesAndModdles } from '@/components/Designer/modulesAndModdle'
@@ -34,6 +35,7 @@ export default async function (
   EventEmitter.emit('modeler-init', modeler)
 
   EnhancementContextmenu(modeler)
+  EnhancementUserTask(modeler)
 
   modeler.on('commandStack.changed', async (event) => {
     try {

@@ -25,16 +25,24 @@
     </template>
 
     <template v-if="isUserTask">
-      <edit-item v-for="button in taskButtons.value" :key="button.code" :label="button.name">
-        <n-switch v-model:value="button.switchValue" @update:value="handleSwitch(button)" />
-      </edit-item>
+      <n-grid cols="2" :style="{ marginTop: '15px', marginBottom: '15px' }">
+        <n-grid-item
+          v-for="button in taskButtons.value"
+          :key="button.code"
+          :style="{ paddingTop: '10px' }"
+        >
+          <edit-item :key="button.code" :label="button.name">
+            <n-switch v-model:value="button.switchValue" @update:value="handleSwitch(button)" />
+          </edit-item>
+        </n-grid-item>
+      </n-grid>
     </template>
   </n-collapse-item>
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref, watch } from 'vue'
-  import { mapState, mapActions } from 'pinia'
+  import { defineComponent, ref } from 'vue'
+  import { mapActions, mapState } from 'pinia'
   import modelerStore from '@/store/modeler'
   import { Base } from 'diagram-js/lib/model'
   import { getNameValue, setNameValue } from '@/bo-utils/nameUtil'
@@ -47,9 +55,8 @@
   } from '@/bo-utils/processUtil'
   import EventEmitter from '@/utils/EventEmitter'
   import axios from '@/axios'
-  import { getTaskButtons, setTaskButtons } from '@/bo-utils/taskUtil'
+  import { getTaskButtons, setRollbackButton, setTaskButtons } from '@/bo-utils/taskUtil'
   import userTaskStore from '@/store/userTask'
-  import { setRollbackButton } from '@/bo-utils/taskUtil'
 
   export default defineComponent({
     name: 'ElementGenerations',
@@ -156,3 +163,19 @@
     }
   })
 </script>
+
+<style scoped>
+  .light-green {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 128, 0, 0.12);
+  }
+
+  .green {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 128, 0, 0.24);
+  }
+</style>

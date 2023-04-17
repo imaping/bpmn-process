@@ -20,6 +20,8 @@ import ElementConditional from './components/ElementConditional.vue'
 import ElementExecutionListeners from './components/ElementExecutionListeners.vue'
 import ElementTaskListeners from './components/ElementTaskListeners.vue'
 import ElementTaskBack from './components/ElementTaskBack.vue'
+import ElementTaskMembers from './components/ElementTaskMembers.vue'
+import ElementTaskForm from './components/ElementTaskForm.vue'
 import ElementExtensionProperties from './components/ElementExtensionProperties.vue'
 import ElementStartInitiator from './components/ElementStartInitiator.vue'
 import { isCanbeConditional, isUserTask } from '@/bo-utils/conditionUtil'
@@ -52,8 +54,10 @@ const Panel = defineComponent({
       renderComponents.splice(0, renderComponents.length)
       renderComponents.push(ElementGenerations)
       isUserTask(element) && taskStore.isAllowBack && renderComponents.push(ElementTaskBack)
+      isUserTask(element) && renderComponents.push(ElementTaskForm)
       isCanbeConditional(element) && renderComponents.push(ElementConditional)
       isExecutable(element) && renderComponents.push(ElementExecutionListeners)
+      isUserTask(element) && renderComponents.push(ElementTaskMembers)
       isUserTask(element) && renderComponents.push(ElementTaskListeners)
       isStartInitializable(element) && renderComponents.push(ElementStartInitiator)
       console.log(renderComponents)
