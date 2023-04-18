@@ -191,3 +191,51 @@ export function getRollBackData(element: Base) {
   }
   return undefined
 }
+
+export function getTaskForms(element: Base): string | undefined {
+  const editor = editorStore()
+  const prefix = editor.getProcessEngine
+
+  return element.businessObject.get(`${prefix}:formKey`)
+}
+
+export function setTaskForms(element: Base, value: string) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  if (value && value !== '') {
+    modeling.updateProperties(element, {
+      [`${prefix}:formKey`]: value
+    })
+  } else {
+    modeling.updateProperties(element, {
+      [`${prefix}:formKey`]: undefined
+    })
+  }
+}
+
+export function getTaskAttachment(element: Base): string | undefined {
+  const editor = editorStore()
+  const prefix = editor.getProcessEngine
+
+  return element.businessObject.get(`${prefix}:attachment`)
+}
+
+export function setTaskAttachment(element: Base, value: string) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  if (value && value !== '') {
+    modeling.updateProperties(element, {
+      [`${prefix}:attachment`]: value
+    })
+  } else {
+    modeling.updateProperties(element, {
+      [`${prefix}:attachment`]: undefined
+    })
+  }
+}

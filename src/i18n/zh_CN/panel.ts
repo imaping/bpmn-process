@@ -59,5 +59,7 @@ export default {
   taskBack: '退回',
   taskMember: '节点人员',
   taskForm: '表单',
-  addForm: '添加表单'
+  addForm: '添加表单',
+  attachmentForm: '材料',
+  addAttachment: '添加材料'
 }

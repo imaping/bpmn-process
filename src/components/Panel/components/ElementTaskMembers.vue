@@ -41,7 +41,7 @@
   import modelerStore from '@/store/modeler'
   import EventEmitter from '@/utils/EventEmitter'
   import type { DataTableColumns } from 'naive-ui'
-  import { NButton, NInput, NSelect, NLayout, NLayoutHeader, NLayoutFooter } from 'naive-ui'
+  import { NButton, NInput, NSelect } from 'naive-ui'
 
   const modeler = modelerStore()
 
