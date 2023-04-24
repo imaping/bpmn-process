@@ -1,5 +1,5 @@
 <template>
-  <n-collapse-item name="element-task-back">
+  <n-collapse-item name="element-members-back">
     <template #header>
       <collapse-title :title="$t('panel.taskMember')">
         <lucide-icon name="User" />

@@ -61,5 +61,7 @@ export default {
   taskForm: '表单',
   addForm: '添加表单',
   attachmentForm: '材料',
-  addAttachment: '添加材料'
+  addAttachment: '添加材料',
+  function: '功能属性',
+  addFunction: '添加功能属性'
 }

@@ -1,7 +1,9 @@
 import { is, isAny } from 'bpmn-js/lib/util/ModelUtil'
 import { Base } from 'diagram-js/lib/model'
 import editor from '@/store/editor'
+import editorStore from '@/store/editor'
 import modeler from '@/store/modeler'
+import modelerStore from '@/store/modeler'
 import {
   addExtensionElements,
   getExtensionElementsList,
@@ -10,8 +12,6 @@ import {
 import { getListenersContainer } from '@/bo-utils/executionListenersUtil'
 import { ModdleElement } from 'moddle'
 import { createScript } from '@/bo-utils/scriptUtil'
-import modelerStore from '@/store/modeler'
-import editorStore from '@/store/editor'
 
 export function getTaskListenerTypes(element: Base) {
   if (is(element, 'bpmn:UserTask')) {
@@ -236,6 +236,30 @@ export function setTaskAttachment(element: Base, value: string) {
   } else {
     modeling.updateProperties(element, {
       [`${prefix}:attachment`]: undefined
+    })
+  }
+}
+
+export function getTaskFunction(element: Base): string | undefined {
+  const editor = editorStore()
+  const prefix = editor.getProcessEngine
+
+  return element.businessObject.get(`${prefix}:functionGroup`)
+}
+
+export function setTaskFunction(element: Base, value: string|undefined) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  if (value && value !== '') {
+    modeling.updateProperties(element, {
+      [`${prefix}:functionGroup`]: value
+    })
+  } else {
+    modeling.updateProperties(element, {
+      [`${prefix}:functionGroup`]: undefined
     })
   }
 }

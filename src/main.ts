@@ -34,7 +34,8 @@ import {
   NSwitch,
   NGrid,
   NGridItem,
-  NTree
+  NTree,
+  NPopconfirm
 } from 'naive-ui'
 
 const naive = create({
@@ -66,7 +67,8 @@ const naive = create({
     NSwitch,
     NGrid,
     NGridItem,
-    NTree
+    NTree,
+    NPopconfirm
   ]
 })
 
