@@ -1,18 +1,29 @@
-import { defineComponent } from 'vue'
+import { defineComponent, h } from 'vue'
 
 import BpmnModdle from 'bpmn-moddle'
 import modeler from '@/store/modeler'
-import { NButton, NPopover, NCode, useDialog } from 'naive-ui'
+import { NButton, NCode, NPopover, useDialog } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
+import useClipboard from '@/components/common/Clipboard'
 
 const Previews = defineComponent({
   name: 'Previews',
   setup() {
+    const { toClipboard } = useClipboard()
     const { t } = useI18n()
     const previewModel = useDialog()
     const modelerStore = modeler()
 
     const moddle = new BpmnModdle()
+
+    const copyXMLPreviewModel = async () => {
+      const modeler = modelerStore.getModeler!
+      if (!modeler) {
+        return window.__messageBox.warning('模型加载失败，请刷新重试')
+      }
+      const { xml } = await modeler.saveXML({ format: true, preamble: true })
+      await toClipboard(xml || '')
+    }
 
     const openXMLPreviewModel = async () => {
       try {
@@ -23,15 +34,25 @@ const Previews = defineComponent({
         }
 
         const { xml } = await modeler.saveXML({ format: true, preamble: true })
-
         previewModel.create({
           title: t('toolbar.previewAs'),
           showIcon: false,
-          content: () => (
-            <div class="preview-model">
-              <NCode code={xml!} language="xml" wordWrap={true}></NCode>
-            </div>
-          )
+          content: () => {
+            return h(
+              'div',
+              {
+                class: 'preview-model'
+              },
+              [
+                h(NCode, {
+                  id: 'foo',
+                  code: xml!,
+                  language: 'xml',
+                  wordWrap: true
+                })
+              ]
+            )
+          }
         })
       } catch (e) {
         window.__messageBox.error((e as Error).message || (e as string))
@@ -40,7 +61,6 @@ const Previews = defineComponent({
 
     const openJsonPreviewModel = async () => {
       const modeler = modelerStore.getModeler!
-
       if (!modeler) {
         return window.__messageBox.warning('模型加载失败，请刷新重试')
       }
@@ -75,6 +95,9 @@ const Previews = defineComponent({
               </NButton>
               <NButton type="info" onClick={openJsonPreviewModel}>
                 {t('toolbar.previewAsJSON')}
+              </NButton>
+              <NButton type="info" onClick={copyXMLPreviewModel}>
+                复制XML
               </NButton>
             </div>
           )

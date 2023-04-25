@@ -19,6 +19,7 @@ import ElementGenerations from './components/ElementGenerations.vue'
 import ElementConditional from './components/ElementConditional.vue'
 import ElementExecutionListeners from './components/ElementExecutionListeners.vue'
 import ElementTaskListeners from './components/ElementTaskListeners.vue'
+import ElementTaskEvents from './components/ElementTaskEvents.vue'
 import ElementTaskBack from './components/ElementTaskBack.vue'
 import ElementTaskMembers from './components/ElementTaskMembers.vue'
 import ElementTaskForm from './components/ElementTaskForm.vue'
@@ -59,9 +60,10 @@ const Panel = defineComponent({
       isUserTask(element) && renderComponents.push(ElementTaskForm)
       isUserTask(element) && renderComponents.push(ElementTaskAttachment)
       isCanbeConditional(element) && renderComponents.push(ElementConditional)
-      isExecutable(element) && renderComponents.push(ElementExecutionListeners)
+      // isExecutable(element) && renderComponents.push(ElementExecutionListeners)
       isUserTask(element) && renderComponents.push(ElementTaskMembers)
-      isUserTask(element) && renderComponents.push(ElementTaskListeners)
+      // isUserTask(element) && renderComponents.push(ElementTaskListeners)
+      isExecutable(element) && renderComponents.push(ElementTaskEvents)
       isUserTask(element) && renderComponents.push(ElementTaskFunction)
       isStartInitializable(element) && renderComponents.push(ElementStartInitiator)
       console.log(renderComponents)

@@ -63,5 +63,7 @@ export default {
   attachmentForm: '材料',
   addAttachment: '添加材料',
   function: '功能属性',
-  addFunction: '添加功能属性'
+  addFunction: '添加功能属性',
+  eventListeners: '事件服务',
+  addTaskEvent: '添加事件服务'
 }

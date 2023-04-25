@@ -10,6 +10,7 @@ import editor from '@/store/editor'
 import modeler from '@/store/modeler'
 import { createScript } from '@/bo-utils/scriptUtil'
 import { LISTENER_ALLOWED_TYPES } from '@/config/bpmnEnums'
+import {isProxy, toRaw, unref} from 'vue'
 
 export const EXECUTION_LISTENER_TYPE = {
   class: 'Java class',

@@ -3,6 +3,7 @@ import { Base } from 'diagram-js/lib/model'
 import { ModdleElement } from 'bpmn-moddle'
 import { isArray } from 'min-dash'
 import modeler from '@/store/modeler'
+import {isProxy, toRaw} from "vue";
 
 /**
  * Get extension elements of business object. Optionally filter by type.
@@ -30,6 +31,8 @@ export function addExtensionElements(
   businessObject: ModdleElement,
   extensionElementToAdd: ModdleElement
 ) {
+  element = isProxy(element) ? toRaw(element) : element
+  businessObject = isProxy(businessObject) ? toRaw(businessObject) : businessObject
   const modeling = modeler().getModeling
   let extensionElements = businessObject.get('extensionElements')
 
@@ -58,14 +61,16 @@ export function removeExtensionElements(
   businessObject: ModdleElement,
   extensionElementsToRemove: ModdleElement | ModdleElement[]
 ) {
+  element = isProxy(element) ? toRaw(element) : element
+  businessObject = isProxy(businessObject) ? toRaw(businessObject) : businessObject
   if (!isArray(extensionElementsToRemove)) {
     extensionElementsToRemove = [extensionElementsToRemove]
   }
 
   const extensionElements = businessObject.get('extensionElements'),
-    values = extensionElements
-      .get('values')
-      .filter((value) => !extensionElementsToRemove.includes(value))
+    values = extensionElements.get('values').filter((value) => {
+      return !extensionElementsToRemove.includes(value)
+    })
 
   const modeling = modeler().getModeling
   modeling.updateModdleProperties(element, extensionElements, { values })
