@@ -19,6 +19,7 @@
   )
 
   const selected = ref<Array<any>>(JSON.parse(JSON.stringify(toRaw(props.selected))))
+  selected.value.map((d) => (d.loginName = d.code))
 
   const isMultiple = computed(() => {
     return props.multiple

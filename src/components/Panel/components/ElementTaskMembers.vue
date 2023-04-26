@@ -28,7 +28,7 @@
           </n-button>
         </n-form-item>
         <n-form-item label="候选用户:">
-          <n-input v-model:value="user.candidateGroups" placeholder="" disabled />
+          <n-input v-model:value="computeCandidateGroups" type="textarea" placeholder="" disabled />
           <n-button class="edit-button" circle size="small" @click="showUserRulerSelector = true">
             <template #icon>
               <n-icon>
@@ -70,16 +70,21 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, ref, toRaw } from 'vue'
+  import { computed, onMounted, ref, toRaw } from 'vue'
   import modelerStore from '@/store/modeler'
-  import EventEmitter from '@/utils/EventEmitter'
   import { NButton, NInput } from 'naive-ui'
   import UserRulerSelector from '@/components/Panel/components/SubChild/UserRulerSelector.vue'
   import UserAssigneeSelector from '@/components/Panel/components/SubChild/UserAssigneeSelector.vue'
   import { Edit } from 'lucide-vue-next'
-  import { getTaskAssignee, setTaskAssignee } from '@/bo-utils/taskUtil'
+  import {
+    getTaskAssignee,
+    getTaskCandidateGroup,
+    setTaskAssignee,
+    setTaskCandidateGroup
+  } from '@/bo-utils/taskUtil'
   import { Base } from 'diagram-js/lib/model'
   import { debounce } from 'min-dash'
+  import axios from '@/axios'
 
   const modeler = modelerStore()
 
@@ -106,10 +111,83 @@
 
   const onUserRulerSelectorPositiveClick = () => {
     const rulerData = toRaw(userRulerSelectorRef.value.rules)
-    user.value.candidateGroups = JSON.stringify(rulerData)
-    user.value.candidateGroupsRules = toRaw(rulerData)
-    showUserRulerSelector.value = false
+    for (let index: number in rulerData) {
+      if (
+        rulerData[index].value === null ||
+        rulerData[index].value === '' ||
+        rulerData[index].value.length == 0
+      ) {
+        window.__messageBox.warning(`第${++index}行数据不能为空`)
+        return false
+      }
+    }
+
+    const processId = modeler.getActive.businessObject.$parent.id
+    const activeId = modeler.getActiveId
+    const categoryCode = processId + '_' + activeId
+    axios
+      .post('/workflow/rest/candidate-rules', {
+        categoryCode: categoryCode,
+        rules: rulerData
+      })
+      .then((response) => {
+        user.value.candidateGroups = JSON.stringify(rulerData)
+        user.value.candidateGroupsRules = toRaw(rulerData)
+        setTaskCandidateGroup(modeler.getActive as Base, categoryCode)
+        showUserRulerSelector.value = false
+      })
+      .catch((error) => {
+        window.__messageBox.error(error.message)
+        return false
+      })
   }
+
+  const computeCandidateGroups = computed(() => {
+    let value = ''
+    for (let index in user.value.candidateGroupsRules) {
+      const rule = user.value.candidateGroupsRules[index]
+      if (index > 0) {
+        switch (rule.operator) {
+          case 'OR':
+            value += '(或)'
+            break
+          case 'AND':
+            value += '(与)'
+            break
+          case 'DIFF':
+            value += '(排除)'
+            break
+        }
+      }
+      switch (rule.type) {
+        case 'USER':
+          value += '[用户]'
+          break
+        case 'GROUP':
+          value += '[组]'
+          break
+        case 'CURRENTLOGINUSER':
+          value += '[当前登录用户]'
+          break
+        case 'INITIATOR':
+          value += '[流程发起人]'
+          continue
+        case 'ROLE':
+          value += '[角色]'
+          break
+        case 'DEPARTMENT':
+          value += '[部门]'
+          break
+        case 'ORGANIZATION':
+          value += '[组织机构]'
+          break
+      }
+      if (rule.value && rule.value.length > 0) {
+        value += '<' + rule.value.map((d) => d.name).toString() + '>'
+      }
+    }
+    return value
+  })
 
   const onAssigneeSelectorPositiveClick = () => {
     userAssigneeSelectorRef?.value.getUserAssignee((assignee) => {
@@ -121,15 +199,28 @@
     return false
   }
 
-  const reloadData = debounce(() => {
+  const reloadData = () => {
     const taskAssignee = getTaskAssignee(modeler.getActive as Base)
     user.value.assigneeType = taskAssignee.assigneeType
     user.value.assignee = taskAssignee.assignee
-  }, 10)
+    const taskCandidateGroup = getTaskCandidateGroup(modeler.getActive as Base)
+    if (taskCandidateGroup) {
+      axios.get(`/workflow/rest/candidate-rules/${taskCandidateGroup}`).then((response) => {
+        if (
+          response.data.status === 1 &&
+          response.data.content &&
+          response.data.content.rules &&
+          response.data.content.rules.length > 0
+        ) {
+          user.value.candidateGroups = JSON.stringify(response.data.content.rules)
+          user.value.candidateGroupsRules = response.data.content.rules
+        }
+      })
+    }
+  }
 
   onMounted(() => {
     reloadData()
-    EventEmitter.on('element-update', reloadData)
   })
 </script>
 <style scoped>

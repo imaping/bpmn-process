@@ -31,9 +31,9 @@
     {
       rules: () => [
         {
-          type: 'user',
+          type: 'USER',
           value: [],
-          operator: 'or'
+          operator: 'OR'
         }
       ]
     }
@@ -46,35 +46,34 @@
   }
 
   const rules = ref<Array<RuleData>>(JSON.parse(JSON.stringify(toRaw(props.rules))))
-
   const userTypeOptions = [
     {
       label: '指定用户',
-      value: 'user'
+      value: 'USER'
     },
     {
       label: '用户组',
-      value: 'group'
+      value: 'GROUP'
     },
     {
       label: '当前登录用户',
-      value: 'currentLoginUser'
+      value: 'CURRENTLOGINUSER'
     },
     {
       label: '流程发起人',
-      value: 'initiator'
+      value: 'INITIATOR'
     },
     {
       label: '角色',
-      value: 'role'
+      value: 'ROLE'
     },
     {
       label: '部门',
-      value: 'department'
+      value: 'DEPARTMENT'
     },
     {
       label: '组织机构',
-      value: 'organization'
+      value: 'ORGANIZATION'
     }
   ]
 
@@ -97,7 +96,7 @@
           options: userTypeOptions,
           onUpdateValue(v) {
             rules.value[index].type = v
-            if (v === 'currentLoginUser') {
+            if (v === 'CURRENTLOGINUSER') {
               if (currentUserStore.isAuthenticated) {
                 row.value = [
                   {
@@ -110,7 +109,7 @@
               } else {
                 row.value = []
               }
-            } else if (v === 'initiator') {
+            } else if (v === 'INITIATOR') {
               row.value = [
                 {
                   code: '$INITIATOR',
@@ -133,7 +132,7 @@
         tooltip: true
       },
       render: (row, index) => {
-        if (row.type === 'currentLoginUser' || row.type === 'initiator') {
+        if (row.type === 'CURRENTLOGINUSER' || row.type === 'INITIATOR') {
           return h('span', {}, { default: () => renderSpan(row, index) })
         }
         return [
@@ -177,15 +176,15 @@
             options: [
               {
                 label: '或',
-                value: 'or'
+                value: 'OR'
               },
               {
                 label: '与',
-                value: 'and'
+                value: 'AND'
               },
               {
                 label: '排除',
-                value: 'diff'
+                value: 'DIFF'
               }
             ],
             onUpdateValue(v) {
@@ -272,9 +271,9 @@
 
   const addRule = () => {
     rules.value.push({
-      type: 'user',
+      type: 'USER',
       value: [],
-      operator: 'or'
+      operator: 'OR'
     })
   }
 
@@ -323,19 +322,19 @@
     currentIndex = index
     currentSelectRowData.value = rules.value[index].value
     switch (row.type) {
-      case 'user':
+      case 'USER':
         showUserSelectorModal.value = true
         break
-      case 'organization':
+      case 'ORGANIZATION':
         showOrganizationSelector.value = true
         break
-      case 'department':
+      case 'DEPARTMENT':
         showDepartmentSelector.value = true
         break
-      case 'role':
+      case 'ROLE':
         showRoleSelector.value = true
         break
-      case 'group':
+      case 'GROUP':
         showUserGroupSelector.value = true
         break
     }

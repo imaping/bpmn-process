@@ -5,7 +5,7 @@ const instance = axios.create({
   timeout: 300000,
   headers: {
     'Content-Type': 'application/json',
-    Authorization: 'Bearer ATT-1-v3d44WyuEQBFu3H4xPKQf49QDEFQ4lPy'
+    Authorization: 'Bearer ATT-2-JnSCW2I8fMPu-sK6mAVDZaoEnaHiJkdh'
   }
 })
 

@@ -294,3 +294,29 @@ export function setTaskAssignee(element: Base, type: number, assignee: string) {
     })
   }
 }
+
+export function setTaskCandidateGroup(element: Base, value: string) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  if (value) {
+    modeling.updateProperties(element, {
+      [`${prefix}:candidateGroups`]: value
+    })
+  } else {
+    modeling.updateProperties(element, {
+      [`${prefix}:candidateGroups`]: undefined
+    })
+  }
+}
+
+export function getTaskCandidateGroup(element: Base) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  return element.businessObject.get(`${prefix}:candidateGroups`)
+}
