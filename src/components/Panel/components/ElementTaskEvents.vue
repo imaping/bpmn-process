@@ -46,8 +46,8 @@
   import { Base } from 'diagram-js/lib/model'
   import { isUserTask } from '@/bo-utils/conditionUtil'
   import EventEmitter from '@/utils/EventEmitter'
-  import debounce from 'lodash.debounce'
   import { Trash2 } from 'lucide-vue-next'
+  import {debounce} from "min-dash";
 
   const modelerStore = modeler()
   // const getActive = computed(() => modelerStore.getActive!)
@@ -189,7 +189,7 @@
       return Object.assign({}, { listenerTypeLabel, code, event: item.event, raw: item })
     })
     data.value = data.value.concat(listeners)
-  }, 100)
+  }, 10)
   onMounted(() => {
     reloadData()
     EventEmitter.on('element-update', reloadData)

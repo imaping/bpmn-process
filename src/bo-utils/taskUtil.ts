@@ -247,7 +247,7 @@ export function getTaskFunction(element: Base): string | undefined {
   return element.businessObject.get(`${prefix}:functionGroup`)
 }
 
-export function setTaskFunction(element: Base, value: string|undefined) {
+export function setTaskFunction(element: Base, value: string | undefined) {
   const store = modelerStore()
   const editor = editorStore()
 
@@ -260,6 +260,37 @@ export function setTaskFunction(element: Base, value: string|undefined) {
   } else {
     modeling.updateProperties(element, {
       [`${prefix}:functionGroup`]: undefined
+    })
+  }
+}
+
+export function getTaskAssignee(element: Base) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  return {
+    assigneeType: element.businessObject.get(`${prefix}:assigneeType`),
+    assignee: element.businessObject.get(`${prefix}:assignee`)
+  }
+}
+
+export function setTaskAssignee(element: Base, type: number, assignee: string) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  if (type in [1, 2, 3]) {
+    modeling.updateProperties(element, {
+      [`${prefix}:assigneeType`]: type,
+      [`${prefix}:assignee`]: assignee
+    })
+  } else {
+    modeling.updateProperties(element, {
+      [`${prefix}:assigneeType`]: undefined,
+      [`${prefix}:assignee`]: undefined
     })
   }
 }

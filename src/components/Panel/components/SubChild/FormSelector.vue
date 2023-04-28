@@ -201,6 +201,7 @@
         flex-height
         style="height: 530px"
         :columns="tableColumns"
+        :row-key="(row) => row.id"
         :data="tableData"
         :bordered="false"
       />

@@ -6,208 +6,134 @@
       </collapse-title>
     </template>
     <div class="element-extension-task-back">
-      <edit-item key="allowBack" label="人员配置">
-        <n-input-group>
-          <n-input :style="{ width: '70%', marginRight: '10px' }" placeholder="" disabled />
-          <n-button type="primary" ghost @click="showModal = true"> 编辑</n-button>
-        </n-input-group>
-      </edit-item>
+      <n-form
+        label-placement="left"
+        label-align="right"
+        label-width="auto"
+        style="width: 90%; margin-left: 20px"
+      >
+        <n-form-item label="指定用户:">
+          <n-input v-model:value="user.assignee" placeholder="" disabled />
+          <n-button
+            class="edit-button"
+            circle
+            size="small"
+            @click="showUserAssigneeSelector = true"
+          >
+            <template #icon>
+              <n-icon>
+                <edit color="green" />
+              </n-icon>
+            </template>
+          </n-button>
+        </n-form-item>
+        <n-form-item label="候选用户:">
+          <n-input v-model:value="user.candidateGroups" placeholder="" disabled />
+          <n-button class="edit-button" circle size="small" @click="showUserRulerSelector = true">
+            <template #icon>
+              <n-icon>
+                <edit color="green" />
+              </n-icon>
+            </template>
+          </n-button>
+        </n-form-item>
+      </n-form>
     </div>
     <n-modal
-      v-model:show="showModal"
-      :style="{ width: '860px', height: '500px' }"
+      v-model:show="showUserAssigneeSelector"
+      :style="{ width: '50%', height: '25%' }"
       :mask-closable="false"
       preset="dialog"
       title="人员配置"
       positive-text="确认"
-      @positive-click="onPositiveClick"
+      @positive-click="onAssigneeSelectorPositiveClick"
     >
-      <n-button type="info" :style="{ marginBottom: '10px' }" @click="addRule"> 新增</n-button>
-      <n-data-table
-        flex-height
-        :style="{ height: '320px' }"
-        :bordered="true"
-        resizable
-        :single-line="false"
-        :columns="columns"
-        :data="data"
-      />
+      <user-assignee-selector ref="userAssigneeSelectorRef"></user-assignee-selector>
+    </n-modal>
+    <n-modal
+      v-model:show="showUserRulerSelector"
+      :style="{ width: '75%', height: '620px' }"
+      :mask-closable="false"
+      preset="dialog"
+      title="候选用户配置"
+      :show-icon="false"
+      positive-text="确认"
+      @positive-click="onUserRulerSelectorPositiveClick"
+    >
+      <user-ruler-selector
+        ref="userRulerSelectorRef"
+        :rules="user.candidateGroupsRules"
+        :style="{ paddingTop: '10px' }"
+      ></user-ruler-selector>
     </n-modal>
   </n-collapse-item>
 </template>
 
 <script lang="ts" setup>
-  import { h, onMounted, reactive, ref } from 'vue'
+  import { onMounted, ref, toRaw } from 'vue'
   import modelerStore from '@/store/modeler'
   import EventEmitter from '@/utils/EventEmitter'
-  import type { DataTableColumns } from 'naive-ui'
-  import { NButton, NInput, NSelect } from 'naive-ui'
+  import { NButton, NInput } from 'naive-ui'
+  import UserRulerSelector from '@/components/Panel/components/SubChild/UserRulerSelector.vue'
+  import UserAssigneeSelector from '@/components/Panel/components/SubChild/UserAssigneeSelector.vue'
+  import { Edit } from 'lucide-vue-next'
+  import { getTaskAssignee, setTaskAssignee } from '@/bo-utils/taskUtil'
+  import { Base } from 'diagram-js/lib/model'
+  import { debounce } from 'min-dash'
 
   const modeler = modelerStore()
 
-  const value = ref<string>('1')
-  const showModal = ref<boolean>(false)
+  const userRulerSelectorRef = ref<any>(null)
 
-  type RuleData = {
-    type: string
-    value: string
-    operator: string
+  type User = {
+    assigneeType: number
+    assignee: string
+    candidateGroups: string
+    candidateGroupsRules: Array<any> | undefined
   }
 
-  const data: RuleData[] = reactive([
-    {
-      type: 'user',
-      value: '',
-      operator: 'or'
-    }
-  ])
-  const columns: DataTableColumns<RuleData> = [
-    {
-      title: '序号',
-      key: 'type',
-      width: 55,
-      render: (row, index) => {
-        return index + 1
-      }
-    },
-    {
-      title: '用户类型',
-      key: 'type',
-      render(row, index) {
-        return h(NSelect, {
-          value: row.type,
-          options: [
-            {
-              label: '用户',
-              value: 'user'
-            },
-            {
-              label: '角色',
-              value: 'role'
-            },
-            {
-              label: '部门',
-              value: 'department'
-            },
-            {
-              label: '组织机构',
-              value: 'organization'
-            },
-            {
-              label: '用户组',
-              value: 'group'
-            }
-          ],
-          onUpdateValue(v) {
-            data[index].type = v
-          }
-        })
-      }
-    },
-    {
-      title: '用户',
-      key: 'value',
-      minWidth: 300
-    },
-    {
-      title: '运算类型',
-      key: 'operator',
-      render(row, index) {
-        if (index == 0) {
-          return []
-        }
-        return [
-          h(NSelect, {
-            value: row.operator,
-            options: [
-              {
-                label: '或',
-                value: 'or'
-              },
-              {
-                label: '与',
-                value: 'and'
-              },
-              {
-                label: '排除',
-                value: 'diff'
-              }
-            ],
-            onUpdateValue(v) {
-              data[index].operator = v
-            }
-          })
-        ]
-      }
-    },
-    {
-      title: '操作',
-      key: 'order',
-      width: 200,
-      render(row, index) {
-        return [
-          h(
-            NButton,
-            {
-              size: 'small',
-              disabled: index == 0,
-              onClick: () => moveUp(index)
-            },
-            { default: () => '上移' }
-          ),
-          h(
-            NButton,
-            {
-              size: 'small',
-              disabled: index == data.length - 1,
-              onClick: () => moveDown(index)
-            },
-            { default: () => '下移' }
-          ),
-          h(
-            NButton,
-            {
-              size: 'small',
-              onClick: () => deleteRule(index)
-            },
-            { default: () => '删除' }
-          )
-        ]
-      }
-    }
-  ]
+  const user = ref<User>({
+    assigneeType: 0,
+    assignee: '',
+    candidateGroups: '',
+    candidateGroupsRules: undefined
+  })
 
-  const onPositiveClick = () => {
-    showModal.value = false
+  const userAssigneeSelectorRef = ref<any>()
+
+  const showUserRulerSelector = ref<boolean>(false)
+  const showUserAssigneeSelector = ref<boolean>(false)
+
+  const onUserRulerSelectorPositiveClick = () => {
+    const rulerData = toRaw(userRulerSelectorRef.value.rules)
+    user.value.candidateGroups = JSON.stringify(rulerData)
+    user.value.candidateGroupsRules = toRaw(rulerData)
+    showUserRulerSelector.value = false
   }
 
-  const addRule = () => {
-    data.push({
-      type: 'user',
-      value: '',
-      operator: 'or'
+  const onAssigneeSelectorPositiveClick = () => {
+    userAssigneeSelectorRef?.value.getUserAssignee((assignee) => {
+      user.value.assigneeType = assignee.type
+      user.value.assignee = assignee.value
+      setTaskAssignee(modeler.getActive as Base, user.value.assigneeType, user.value.assignee)
+      showUserAssigneeSelector.value = false
     })
+    return false
   }
 
-  const moveUp = (index) => {
-    data.splice(index, 1, ...data.splice(index - 1, 1, data[index]))
-    if (index - 1 === 0) {
-      data[0].operator = 'or'
-    }
-  }
-
-  const moveDown = (index) => {
-    if (index === 0) {
-      data[0].operator = 'or'
-    }
-    data.splice(index, 1, ...data.splice(index + 1, 1, data[index]))
-  }
-
-  const deleteRule = (index) => {
-    data.splice(index, 1)
-  }
+  const reloadData = debounce(() => {
+    const taskAssignee = getTaskAssignee(modeler.getActive as Base)
+    user.value.assigneeType = taskAssignee.assigneeType
+    user.value.assignee = taskAssignee.assignee
+  }, 10)
 
   onMounted(() => {
-    EventEmitter.on('element-update', () => {})
+    reloadData()
+    EventEmitter.on('element-update', reloadData)
   })
 </script>
+<style scoped>
+  .edit-button {
+    margin-left: 10px;
+  }
+</style>

@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createPinia, mapActions } from 'pinia'
 import App from './App.js'
 
 import './styles/index.scss'
@@ -35,7 +35,10 @@ import {
   NGrid,
   NGridItem,
   NTree,
-  NPopconfirm
+  NPopconfirm,
+  NCard,
+  NEmpty,
+  NIcon
 } from 'naive-ui'
 
 const naive = create({
@@ -68,7 +71,10 @@ const naive = create({
     NGrid,
     NGridItem,
     NTree,
-    NPopconfirm
+    NPopconfirm,
+    NCard,
+    NEmpty,
+    NIcon
   ]
 })
 
@@ -87,6 +93,8 @@ import CollapseTitle from '@/components/common/CollapseTitle.vue'
 import 'virtual:svg-icons-register'
 
 import i18n from '@/i18n'
+import axios from '@/axios'
+import currentUser from '@/store/currentUser'
 
 const app = createApp(App)
 
@@ -100,3 +108,11 @@ app.component('EditItem', EditItem)
 app.component('CollapseTitle', CollapseTitle)
 
 app.mount('#app')
+
+const store = currentUser()
+
+axios.get('management/rest/user-info').then((response) => {
+  if (response.data.status === 1) {
+    store.setCurrentUser(response.data.content)
+  }
+})

@@ -57,7 +57,7 @@ export default {
   taskListenerEventType: '事件类型',
   taskListenerType: '监听器类型',
   taskBack: '退回',
-  taskMember: '节点人员',
+  taskMember: '任务',
   taskForm: '表单',
   addForm: '添加表单',
   attachmentForm: '材料',

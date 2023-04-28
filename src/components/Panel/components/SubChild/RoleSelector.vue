@@ -1,12 +1,21 @@
 <script lang="ts" setup>
   import { h, onMounted, reactive, ref, toRaw } from 'vue'
-  import { NButton, NCheckbox, NTag, TreeOption } from 'naive-ui'
+  import { DataTableRowKey, NButton, NCheckbox, NTooltip } from 'naive-ui'
   import { useI18n } from 'vue-i18n'
   import axios from '@/axios'
 
   const { t } = useI18n()
 
-  let treeData = ref([])
+  let categoryData = [
+    {
+      value: 1,
+      name: '系统内置'
+    },
+    {
+      value: 2,
+      name: '公共角色'
+    }
+  ]
 
   const tableColumns = [
     {
@@ -21,7 +30,8 @@
             if (checked) {
               selected.push({
                 id: rowData.id,
-                code: rowData.code,
+                code: rowData.type,
+                type: rowData.type,
                 name: rowData.name
               })
             } else {
@@ -39,8 +49,12 @@
       key: 'name'
     },
     {
-      title: '代码',
-      key: 'code'
+      title: '类别',
+      key: 'type'
+    },
+    {
+      title: '描述',
+      key: 'description'
     }
   ]
 
@@ -48,7 +62,7 @@
     {
       title: '名称',
       key: 'code',
-      render: (row) => h('span', {}, row.name + '(' + row.code + ')')
+      render: (row, index) => h('span', {}, row.name + '(' + row.code + ')')
     },
     {
       title: '操作',
@@ -63,9 +77,9 @@
             type: 'error',
             onClick: () => {
               selected.splice(index, 1)
-              const form = tableData.value.findLast((p) => p.code === row.code)
-              if (form) {
-                form.checked = false
+              const role = tableData.value.findLast((p) => p.code === row.code)
+              if (role) {
+                role.checked = false
               }
             }
           },
@@ -74,36 +88,20 @@
     }
   ]
 
-  const defaultSelectedKeys = reactive([])
+  const defaultSelectedKeys = ref<Array<number>>([1])
 
   let tableData = ref([])
 
-  const getCategory = () => {
-    axios
-      .get('/workflow/rest/material-category', {
-        params: {
-          queryOptions: '{}'
-        }
-      })
-      .then((response) => {
-        if (response.data.status === 1) {
-          treeData.value = response.data.content
-          defaultSelectedKeys.push(response.data?.content[0]?.id)
-          getData(response.data?.content[0]?.id)
-        }
-      })
-  }
-
-  const getData = (categoryId: string) => {
+  const getRoles = (categoryId: number) => {
     const queryOptions = {
       conditionGroup: {
-        conditions: [{ property: 'categoryId', value: categoryId, operator: 'EQ' }],
+        conditions: [{ property: 'category', value: categoryId, operator: 'EQ' }],
         queryRelation: 'AND'
       },
       orderBys: [{ property: 'sort', direction: 'desc' }]
     }
     axios
-      .get('/workflow/rest/material', {
+      .get('/management/rest/roles', {
         params: {
           queryOptions: JSON.stringify(queryOptions)
         }
@@ -111,28 +109,28 @@
       .then((response) => {
         if (response.data.status === 1) {
           response.data.content.forEach(
-            (data) => (data.checked = selected.findIndex((d) => d.code === data.code) > -1)
+            (data) => (data.checked = selected.findIndex((d) => d.code === data.type) > -1)
           )
           tableData.value = response.data.content
         }
       })
   }
 
-  const nodeProps = ({ option }: { option: TreeOption }) => {
+  const nodeProps = (option) => {
     return {
       onClick() {
-        defaultSelectedKeys.splice(0, defaultSelectedKeys.length)
-        defaultSelectedKeys.push(option.id)
-        getData(option.id as string)
+        defaultSelectedKeys.value = []
+        defaultSelectedKeys.value.push(option.option.value)
+        getRoles(option.option.value)
       }
     }
   }
 
   onMounted(() => {
-    getCategory()
+    getRoles(1)
   })
 
-  type Attachment = {
+  type Role = {
     id: string
     name: string
     code: string
@@ -140,13 +138,14 @@
 
   const props = withDefaults(
     defineProps<{
-      selected: Array<Attachment>
+      selected: Array<Role>
     }>(),
     {
       selected: () => []
     }
   )
-  const selected = reactive<Array<Attachment>>(JSON.parse(JSON.stringify(toRaw(props.selected))))
+  const selected = reactive<Array<Role>>(JSON.parse(JSON.stringify(toRaw(props.selected))))
+
   defineExpose({
     selected
   })
@@ -157,9 +156,9 @@
     <n-grid-item span="1">
       <n-tree
         style="height: 530px"
-        :data="treeData"
+        :data="categoryData"
         virtual-scroll
-        key-field="id"
+        key-field="value"
         label-field="name"
         children-field="children"
         :node-props="nodeProps"
@@ -188,3 +187,8 @@
     </n-grid-item>
   </n-grid>
 </template>
+<style scoped>
+  :deep(.n-data-table-th--selection .n-checkbox-box) {
+    visibility: hidden;
+  }
+</style>
