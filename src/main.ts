@@ -1,45 +1,54 @@
 import { createApp } from 'vue'
-import { createPinia, mapActions } from 'pinia'
-import App from './App.js'
+import { createPinia } from 'pinia'
+import App from './App.vue'
 
 import './styles/index.scss'
 
 import {
-  createDiscreteApi,
   create,
-  NColorPicker,
-  NConfigProvider,
-  NMessageProvider,
-  NDialogProvider,
+  createDiscreteApi,
   NButton,
   NButtonGroup,
-  NTag,
-  NCollapse,
-  NCollapseItem,
-  NDataTable,
-  NPopover,
-  NDrawer,
-  NDrawerContent,
-  NModal,
-  NCode,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NRadio,
-  NRadioGroup,
+  NCard,
   NCheckbox,
   NCheckboxGroup,
-  NSelect,
-  NSwitch,
+  NCode,
+  NCollapse,
+  NCollapseItem,
+  NColorPicker,
+  NConfigProvider,
+  NDataTable,
+  NDialogProvider,
+  NDrawer,
+  NDrawerContent,
+  NEmpty,
+  NForm,
+  NFormItem,
   NGrid,
   NGridItem,
-  NTree,
+  NIcon,
+  NInput,
+  NInputNumber,
+  NMessageProvider,
+  NModal,
   NPopconfirm,
-  NCard,
-  NEmpty,
-  NIcon
+  NPopover,
+  NRadio,
+  NRadioGroup,
+  NSelect,
+  NSwitch,
+  NTag,
+  NTree
 } from 'naive-ui'
+import LucideIcon from '@/components/common/LucideIcon.vue'
+import EditItem from '@/components/common/EditItem.vue'
+import CollapseTitle from '@/components/common/CollapseTitle.vue'
+
+import 'virtual:svg-icons-register'
+
+import i18n from '@/i18n'
+import axios from '@/axios'
+import currentUser from '@/store/currentUser'
 
 const naive = create({
   components: [
@@ -85,16 +94,6 @@ const { message, notification, dialog, loadingBar } = createDiscreteApi([
   'loadingBar'
 ])
 window.__messageBox = message
-
-import LucideIcon from '@/components/common/LucideIcon.vue'
-import EditItem from '@/components/common/EditItem.vue'
-import CollapseTitle from '@/components/common/CollapseTitle.vue'
-
-import 'virtual:svg-icons-register'
-
-import i18n from '@/i18n'
-import axios from '@/axios'
-import currentUser from '@/store/currentUser'
 
 const app = createApp(App)
 

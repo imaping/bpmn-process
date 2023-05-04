@@ -1,6 +1,7 @@
 import { defineComponent } from 'vue'
 import { NButtonGroup } from 'naive-ui'
 import Imports from '@/components/Toolbar/components/Imports'
+import Save from '@/components/Toolbar/components/Save'
 import Exports from '@/components/Toolbar/components/Exports'
 import Previews from '@/components/Toolbar/components/Previews'
 import Aligns from '@/components/Toolbar/components/Aligns'
@@ -17,6 +18,7 @@ const Toolbar = defineComponent({
           <Imports></Imports>
           <Exports></Exports>
           <Previews></Previews>
+          <Save></Save>
         </NButtonGroup>
         <Aligns></Aligns>
         <Scales></Scales>

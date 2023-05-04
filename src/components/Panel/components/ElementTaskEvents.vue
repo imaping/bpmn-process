@@ -22,7 +22,7 @@
       :style="{ width: '80%', height: '650px' }"
       :mask-closable="false"
       preset="dialog"
-      title="表单"
+      title="事件服务"
       positive-text="确认"
       @positive-click="onPositiveClick"
     >
@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, h, onMounted, ref, toRaw, unref } from 'vue'
+  import { h, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
   import { NButton, NIcon, NPopconfirm } from 'naive-ui'
   import { useI18n } from 'vue-i18n'
   import EventEditor from '@/components/Panel/components/SubChild/EventEditor.vue'
@@ -47,7 +47,7 @@
   import { isUserTask } from '@/bo-utils/conditionUtil'
   import EventEmitter from '@/utils/EventEmitter'
   import { Trash2 } from 'lucide-vue-next'
-  import {debounce} from "min-dash";
+  import { debounce } from 'min-dash'
 
   const modelerStore = modeler()
   // const getActive = computed(() => modelerStore.getActive!)
@@ -193,5 +193,9 @@
   onMounted(() => {
     reloadData()
     EventEmitter.on('element-update', reloadData)
+  })
+
+  onBeforeUnmount(() => {
+    EventEmitter.removeListener('element-update', reloadData)
   })
 </script>

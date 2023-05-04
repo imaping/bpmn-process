@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { h, onMounted, ref, toRaw } from 'vue'
+  import { h, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
   import modelerStore from '@/store/modeler'
   import { NButton } from 'naive-ui'
   import { useI18n } from 'vue-i18n'
@@ -42,6 +42,8 @@
   import { Base } from 'diagram-js/lib/model'
   import { isUserTask } from '@/bo-utils/conditionUtil'
   import axios from '@/axios'
+  import EventEmitter from '@/utils/EventEmitter'
+  import { debounce } from 'min-dash'
 
   const { t } = useI18n()
 
@@ -121,7 +123,7 @@
     })
   }
 
-  const reloadFormData = () => {
+  const reloadData = debounce(() => {
     if (isUserTask(modeler.getActive)) {
       const attachments = getTaskAttachment(modeler.getActive as Base)
       if (attachments) {
@@ -138,11 +140,18 @@
             })
           })
         }
+      } else {
+        data.value.splice(0, data.value.length)
       }
     }
-  }
+  }, 100)
 
   onMounted(() => {
-    reloadFormData()
+    reloadData()
+    EventEmitter.on('element-update', reloadData)
+  })
+
+  onBeforeUnmount(() => {
+    EventEmitter.removeListener('element-update', reloadData)
   })
 </script>

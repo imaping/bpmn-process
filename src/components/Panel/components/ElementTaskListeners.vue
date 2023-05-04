@@ -110,7 +110,7 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, h, markRaw, ref, computed, nextTick, onMounted, ComputedRef } from 'vue'
+import {defineComponent, h, markRaw, ref, computed, nextTick, onMounted, ComputedRef, onBeforeUnmount} from 'vue'
   import { FormInst, FormRules, DataTableColumns, NButton } from 'naive-ui'
   import modeler from '@/store/modeler'
   import { ModdleElement } from 'bpmn-moddle'
@@ -294,6 +294,10 @@
       onMounted(() => {
         reloadExtensionListeners()
         EventEmitter.on('element-update', reloadExtensionListeners)
+      })
+
+      onBeforeUnmount(() => {
+        EventEmitter.removeListener('element-update', reloadExtensionListeners)
       })
 
       return {

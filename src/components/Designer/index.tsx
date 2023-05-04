@@ -41,6 +41,21 @@ const Designer = defineComponent({
       { deep: true, immediate: true }
     )
 
+    watch(
+      () => xml.value,
+      async (value, oldValue) => {
+        try {
+          const modelerModules = modulesAndModdle(editorSettings)
+          await nextTick()
+          await initModeler(designer, modelerModules, emit)
+          await createNewDiagram(xml.value)
+        } catch (e) {
+          console.log(e)
+        }
+      },
+      { deep: true, immediate: true }
+    )
+
     return () => <div ref={designer} class="designer"></div>
   }
 })

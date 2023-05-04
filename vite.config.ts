@@ -7,7 +7,7 @@ import { viteCommonjs } from '@originjs/vite-plugin-commonjs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? './' : '/',
+  base: process.env.NODE_ENV === 'production' ? './bpmn-process' : '/bpmn-process',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src/'),

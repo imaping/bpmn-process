@@ -41,7 +41,7 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref } from 'vue'
+  import { defineComponent, onBeforeUnmount, ref } from 'vue'
   import { mapActions, mapState } from 'pinia'
   import modelerStore from '@/store/modeler'
   import { Base } from 'diagram-js/lib/model'
@@ -78,6 +78,9 @@
     mounted() {
       this.reloadGenerationData()
       EventEmitter.on('element-update', this.reloadGenerationData)
+    },
+    unmounted() {
+      EventEmitter.removeListener('element-update', this.reloadGenerationData)
     },
     methods: {
       ...mapActions(userTaskStore, { setAllowBack: 'setAllowBack' }),

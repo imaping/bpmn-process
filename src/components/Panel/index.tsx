@@ -66,7 +66,6 @@ const Panel = defineComponent({
       isExecutable(element) && renderComponents.push(ElementTaskEvents)
       isUserTask(element) && renderComponents.push(ElementTaskFunction)
       isStartInitializable(element) && renderComponents.push(ElementStartInitiator)
-      console.log(renderComponents)
       renderComponents.push(ElementExtensionProperties)
     }
 

@@ -19,3 +19,8 @@ export const createNewDiagram = async function (newXml?: string, settings?: Edit
     console.error(`[Process Designer Warn]: ${typeof e === 'string' ? e : (e as Error)?.message}`)
   }
 }
+
+export const getQueryValue = (name) => {
+  const url = new URL(window.location.href)
+  return url.searchParams.get(name)
+}

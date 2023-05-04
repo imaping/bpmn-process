@@ -70,7 +70,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, ref, toRaw } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
   import modelerStore from '@/store/modeler'
   import { NButton, NInput } from 'naive-ui'
   import UserRulerSelector from '@/components/Panel/components/SubChild/UserRulerSelector.vue'
@@ -85,6 +85,7 @@
   import { Base } from 'diagram-js/lib/model'
   import { debounce } from 'min-dash'
   import axios from '@/axios'
+  import EventEmitter from '@/utils/EventEmitter'
 
   const modeler = modelerStore()
 
@@ -199,10 +200,10 @@
     return false
   }
 
-  const reloadData = () => {
+  const reloadData = debounce(() => {
     const taskAssignee = getTaskAssignee(modeler.getActive as Base)
-    user.value.assigneeType = taskAssignee.assigneeType
-    user.value.assignee = taskAssignee.assignee
+    user.value.assigneeType = taskAssignee.assigneeType || ''
+    user.value.assignee = taskAssignee.assignee || ''
     const taskCandidateGroup = getTaskCandidateGroup(modeler.getActive as Base)
     if (taskCandidateGroup) {
       axios.get(`/workflow/rest/candidate-rules/${taskCandidateGroup}`).then((response) => {
@@ -216,11 +217,19 @@
           user.value.candidateGroupsRules = response.data.content.rules
         }
       })
+    } else {
+      user.value.candidateGroups = ''
+      user.value.candidateGroupsRules = []
     }
-  }
+  }, 200)
 
   onMounted(() => {
     reloadData()
+    EventEmitter.on('element-update', reloadData)
+  })
+
+  onBeforeUnmount(() => {
+    EventEmitter.removeListener('element-update', reloadData)
   })
 </script>
 <style scoped>

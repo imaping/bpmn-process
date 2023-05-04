@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, reactive, ref } from 'vue'
+  import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
   import { getRollBackData, setRollbackButton } from '@/bo-utils/taskUtil'
   import modelerStore from '@/store/modeler'
   import EventEmitter from '@/utils/EventEmitter'
@@ -36,6 +36,10 @@
   onMounted(() => {
     reloadTaskData()
     EventEmitter.on('element-update', reloadTaskData)
+  })
+
+  onBeforeUnmount(() => {
+    EventEmitter.removeListener('element-update', reloadTaskData)
   })
 
   const backType = ref('2')

@@ -45,7 +45,7 @@
 
 <script lang="ts" setup>
   import { Edit, Trash2 } from 'lucide-vue-next'
-  import { h, onMounted, ref } from 'vue'
+  import {h, onBeforeUnmount, onMounted, ref} from 'vue'
   import modelerStore from '@/store/modeler'
   import { NButton, NIcon, NPopconfirm } from 'naive-ui'
   import { useI18n } from 'vue-i18n'
@@ -54,6 +54,8 @@
   import { Base } from 'diagram-js/lib/model'
   import { isUserTask } from '@/bo-utils/conditionUtil'
   import axios from '@/axios'
+  import EventEmitter from '@/utils/EventEmitter'
+  import { debounce } from 'min-dash'
 
   const { t } = useI18n()
 
@@ -189,7 +191,7 @@
     return axios.delete(`/workflow/rest/function/${id}`)
   }
 
-  const reloadData = () => {
+  const reloadData = debounce(() => {
     if (isUserTask(modeler.getActive)) {
       const taskFunction = getTaskFunction(modeler.getActive as Base)
       if (taskFunction) {
@@ -216,11 +218,18 @@
               window.__messageBox.warning(error.message)
             })
         })
+      } else {
+        data.value.splice(0, data.value.length)
       }
     }
-  }
+  }, 100)
 
   onMounted(() => {
     reloadData()
+    EventEmitter.on('element-update', reloadData)
+  })
+
+  onBeforeUnmount(() => {
+    EventEmitter.removeListener('element-update', reloadData)
   })
 </script>
