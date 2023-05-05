@@ -121,9 +121,9 @@
       } else {
         //
         const listener: ExecutionListenerForm = {
-          type: 'delegateExpression',
+          type: 'expression',
           event: result.listenerType,
-          delegateExpression: `\${restfulExecutionEvent.execute(${result.code})}`
+          expression: `\${restfulExecutionEvent.execute(${result.code})}`
         }
         switch (result.listenerType) {
           case 'create':
@@ -178,18 +178,18 @@
       const taskListeners = getTaskListeners(modelerStore.getActive as Base)
       originListeners = originListeners.concat(taskListeners)
     }
-    originListeners = originListeners.filter((d) => d.delegateExpression)
+    originListeners = originListeners.filter((d) => d.expression)
     let listeners = originListeners.map((item) => {
-      const regExpExecArray = reg.exec(item.delegateExpression)
+      const regExpExecArray = reg.exec(item.expression)
       const listenerTypeLabel = listenerTypes.find((d) => d.value === item.event)?.label
-      let code = item.delegateExpression
+      let code = item.expression
       if (regExpExecArray && regExpExecArray.length > 1) {
         code = regExpExecArray[1]
       }
       return Object.assign({}, { listenerTypeLabel, code, event: item.event, raw: item })
     })
     data.value = data.value.concat(listeners)
-  }, 10)
+  }, 100)
   onMounted(() => {
     reloadData()
     EventEmitter.on('element-update', reloadData)
