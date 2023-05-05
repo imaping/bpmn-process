@@ -42,6 +42,12 @@ export default defineStore('editor', {
     updateLanguage(lang: string) {
       sessionStorage.setItem('lang', lang)
       this.$state.editorSettings.language = lang || 'zh_CN'
+    },
+    setProcessId(id: string) {
+      this.$state.editorSettings.processId = id
+    },
+    setProcessName(name: string) {
+      this.$state.editorSettings.processName = name
     }
   }
 })

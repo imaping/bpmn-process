@@ -13,13 +13,21 @@ const Designer = defineComponent({
     xml: {
       type: String as PropType<string>,
       default: undefined
+    },
+    processId: {
+      type: String as PropType<string>,
+      default: undefined
+    },
+    processName: {
+      type: String as PropType<string>,
+      default: undefined
     }
   },
   emits: ['update:xml', 'command-stack-changed'],
   setup(props, { emit }) {
     const editorStore = editor()
     const { editorSettings } = storeToRefs(editorStore)
-    const { xml } = toRefs(props)
+    const { xml, processId, processName } = toRefs(props)
     const designer = ref<HTMLDivElement | null>(null)
 
     watch(
@@ -48,14 +56,15 @@ const Designer = defineComponent({
           const modelerModules = modulesAndModdle(editorSettings)
           await nextTick()
           await initModeler(designer, modelerModules, emit)
-          await createNewDiagram(xml.value)
+          editorStore.setProcessId(processId.value as string)
+          editorStore.setProcessName(processName.value as string)
+          await createNewDiagram(xml.value, editorSettings.value)
         } catch (e) {
           console.log(e)
         }
       },
       { deep: true, immediate: true }
     )
-
     return () => <div ref={designer} class="designer"></div>
   }
 })

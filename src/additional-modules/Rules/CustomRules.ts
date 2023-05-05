@@ -9,10 +9,10 @@ class CustomRules extends RuleProvider {
 
   init() {
     // 禁止删除开始和结束
-    this.addRule(['elements.delete'], 2000, function (context) {
-      const [element]: Base[] = context.elements
-      return element.type !== 'bpmn:StartEvent' && element.type !== 'bpmn:EndEvent'
-    })
+    // this.addRule(['elements.delete'], 2000, function (context) {
+    //   const [element]: Base[] = context.elements
+    //   return element.type !== 'bpmn:StartEvent' && element.type !== 'bpmn:EndEvent'
+    // })
   }
 }
 

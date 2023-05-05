@@ -15,7 +15,7 @@ const Save = defineComponent({
         const modeler = modelerStore.getModeler!
         const processModelId = getQueryValue('id')
         const { xml } = await modeler.saveXML({ format: true, preamble: true })
-        await axios.put(`http://localhost:8877/workflow/rest/models/${processModelId}/xml`, {
+        await axios.put(`/workflow/rest/models/${processModelId}/xml`, {
           editorXml: xml,
           isNewVersion: false,
           updatedAt: Date.now()

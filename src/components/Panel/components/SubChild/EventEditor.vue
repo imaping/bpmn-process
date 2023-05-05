@@ -5,7 +5,7 @@
   import axios from '@/axios'
   import modeler from '@/store/modeler'
   import { isUserTask } from '@/bo-utils/conditionUtil'
-  import EventEmitter from "@/utils/EventEmitter";
+  import EventEmitter from '@/utils/EventEmitter'
 
   const { t } = useI18n()
 
@@ -85,7 +85,10 @@
   const getCategoryItems = (categoryId: string) => {
     const queryOptions = {
       conditionGroup: {
-        conditions: [{ property: 'categoryId', value: categoryId, operator: 'EQ' }],
+        conditions: [
+          { property: 'categoryId', value: categoryId, operator: 'EQ' },
+          { property: 'eventType', value: 'RESTFUL', operator: 'EQ' }
+        ],
         queryRelation: 'AND'
       },
       orderBys: [{ property: 'sort', direction: 'desc' }]

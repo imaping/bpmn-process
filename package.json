@@ -4,8 +4,9 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite --force --open",
-    "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "buildNoEmit": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "build": "vite build"
   },
   "dependencies": {
     "@bpmn-io/add-exporter": "^0.2.0",

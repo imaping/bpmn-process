@@ -7,7 +7,7 @@
     </template>
 
     <edit-item :label="$t('panel.id')">
-      <n-input v-model:value="elementId" maxlength="32" @change="updateElementId" />
+      <n-input v-model:value="elementId" maxlength="32" disabled @change="updateElementId" />
     </edit-item>
 
     <edit-item :label="$t('panel.name')">

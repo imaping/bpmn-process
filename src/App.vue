@@ -10,7 +10,11 @@
           <toolbar v-if="showToolbar"></toolbar>
           <div class="main-content">
             <Palette v-if="customPalette"></Palette>
-            <designer :xml="processXml"></designer>
+            <designer
+              :xml="processXml"
+              :process-id="processId"
+              :process-name="processName"
+            ></designer>
             <Panel v-if="customPenal"></Panel>
             <div v-else id="camunda-penal" class="camunda-penal"></div>
           </div>
@@ -43,6 +47,8 @@
   const editorSettings = ref<EditorSettings>({ ...defaultSettings })
 
   const processXml = ref<string | undefined>(undefined)
+  const processId = ref<string | undefined>(undefined)
+  const processName = ref<string | undefined>(undefined)
 
   const customPalette = computed<boolean>(() => editorSettings.value.paletteMode === 'custom')
   const customPenal = computed<boolean>(() => editorSettings.value.penalMode === 'custom')
@@ -69,5 +75,7 @@
   const getXml = async () => {
     const result = await axios.get(`/workflow/rest/models/${processModelId}/xml`)
     processXml.value = result.data.content.modelEditorXml
+    processId.value = result.data.content.modelCode
+    processName.value = result.data.content.modelName
   }
 </script>
