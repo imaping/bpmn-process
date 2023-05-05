@@ -112,7 +112,7 @@
             } else if (v === 'INITIATOR') {
               row.value = [
                 {
-                  code: '$INITIATOR',
+                  code: '${INITIATOR}',
                   name: '流程发起人'
                 }
               ]

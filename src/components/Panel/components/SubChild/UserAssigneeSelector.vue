@@ -104,7 +104,7 @@
   const assigneeTypeChange = (value) => {
     model.value.type = value
     if (value === 2) {
-      model.value.value = '$INITIATOR'
+      model.value.value = '${INITIATOR}'
     } else if (value === 4) {
       if (currentUserStore.isAuthenticated) {
         model.value.value = currentUserStore.getLoginName
