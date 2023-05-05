@@ -73,7 +73,7 @@
   const processModelId = getQueryValue('id')
 
   const getXml = async () => {
-    if (!processModelId && processModelId != null) {
+    if (processModelId) {
       const result = await axios.get(`/workflow/rest/models/${processModelId}/xml`)
       processXml.value = result.data.content.modelEditorXml
       processId.value = result.data.content.modelCode
