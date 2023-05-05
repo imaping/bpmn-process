@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { computed, h, ref, toRaw } from 'vue'
+  import { computed, h, ref, toRaw, watch } from 'vue'
   import { DataTableColumns, NButton, NCheckbox } from 'naive-ui'
   import { useI18n } from 'vue-i18n'
   import axios from '@/axios'
@@ -19,10 +19,24 @@
   )
 
   const selected = ref<Array<any>>(JSON.parse(JSON.stringify(toRaw(props.selected))))
-  selected.value.map((d) => (d.loginName = d.code))
+
+  const userSelectString = ref<string>('已选择用户: 暂无')
 
   const isMultiple = computed(() => {
     return props.multiple
+  })
+
+  if (isMultiple.value) {
+    selected.value.map((d) => (d.loginName = d.code))
+  } else {
+    if (selected.value.length > 0) {
+      userSelectString.value = '已选择用户: ' + selected.value[0]
+    }
+  }
+
+  watch(selected, (val) => {
+    const find = userData.value.find((d) => d.loginName === val[0])
+    userSelectString.value = `已选择用户:  ${find.name}(${find.loginName})`
   })
 
   const userColumns = computed(() => {
@@ -150,18 +164,16 @@
       })
   }
 
-  const handleUserCheck = (rowKeys) => {
-    if (isMultiple.value) {
-      selected.value = selected.value.concat(rowKeys)
-    } else {
-      selected.value.splice(0, selected.value.length)
-      const find = userData.value.find((d) => d.loginName === rowKeys[0])
-      userSelectString.value = `已选择用户:  ${find.name}(${find.loginName})`
-    }
-    selected.value = selected.value.concat(rowKeys)
-  }
-
-  const userSelectString = ref<string>('已选择用户: 暂无')
+  // const handleUserCheck = (rowKeys) => {
+  //   if (isMultiple.value) {
+  //     selected.value = selected.value.concat(rowKeys)
+  //   } else {
+  //     selected.value.splice(0, selected.value.length)
+  //     const find = userData.value.find((d) => d.loginName === rowKeys[0])
+  //     userSelectString.value = `已选择用户:  ${find.name}(${find.loginName})`
+  //   }
+  //   selected.value = selected.value.concat(rowKeys)
+  // }
 
   const onDepartmentChange = (data) => {
     if (data === undefined) {
@@ -183,8 +195,8 @@
       :offset="11"
       span="5"
       style="margin-bottom: 15px; text-align: right"
-      >{{ userSelectString }}</n-grid-item
-    >
+      >{{ userSelectString }}
+    </n-grid-item>
     <n-grid-item span="9">
       <department-selector
         :checkable="false"
@@ -193,13 +205,13 @@
     </n-grid-item>
     <n-grid-item :span="isMultiple ? 4 : 7" style="margin-top: 15px">
       <n-data-table
+        v-model:checked-row-keys="selected"
         :row-key="userRowKey"
         flex-height
         style="height: 642px"
         :columns="userColumns"
         :data="userData"
         bordered
-        @update-checked-row-keys="handleUserCheck"
       >
         <template #empty>
           <n-empty description="暂无数据"></n-empty>

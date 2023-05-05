@@ -44,7 +44,6 @@
     value: Array<any>
     operator: string
   }
-
   const rules = ref<Array<RuleData>>(JSON.parse(JSON.stringify(toRaw(props.rules))))
   const userTypeOptions = [
     {

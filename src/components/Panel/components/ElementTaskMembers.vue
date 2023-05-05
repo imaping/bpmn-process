@@ -48,7 +48,10 @@
       positive-text="确认"
       @positive-click="onAssigneeSelectorPositiveClick"
     >
-      <user-assignee-selector ref="userAssigneeSelectorRef"></user-assignee-selector>
+      <user-assignee-selector
+        ref="userAssigneeSelectorRef"
+        :assignee="{ type: user.assigneeType, value: user.assignee }"
+      ></user-assignee-selector>
     </n-modal>
     <n-modal
       v-model:show="showUserRulerSelector"
@@ -219,7 +222,7 @@
       })
     } else {
       user.value.candidateGroups = ''
-      user.value.candidateGroupsRules = []
+      user.value.candidateGroupsRules = undefined
     }
   }, 200)
 

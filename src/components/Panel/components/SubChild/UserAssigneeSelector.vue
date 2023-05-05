@@ -39,10 +39,10 @@
 
   const props = withDefaults(
     defineProps<{
-      function: UserAssignee | undefined
+      assignee: UserAssignee | undefined
     }>(),
     {
-      function: (): UserAssignee => {
+      assignee: (): UserAssignee => {
         return {
           type: 1,
           value: ''
@@ -51,7 +51,10 @@
     }
   )
 
-  const model = ref<UserAssignee>(JSON.parse(JSON.stringify(toRaw(props.function))))
+  const model = ref<UserAssignee>(JSON.parse(JSON.stringify(toRaw(props.assignee))))
+  if (model.value.type === '') {
+    model.value.type = 1
+  }
 
   const valueLabel = computed(() => {
     if (model.value.type === 3) {
@@ -167,7 +170,11 @@
     positive-text="确认"
     @positive-click="onUserSelectorPositiveClick"
   >
-    <user-selector ref="userSelectorRef" :multiple="false"></user-selector>
+    <user-selector
+      ref="userSelectorRef"
+      :selected="model.value === '' ? [] : [model.value]"
+      :multiple="false"
+    ></user-selector>
   </n-modal>
 </template>
 <style scoped>
