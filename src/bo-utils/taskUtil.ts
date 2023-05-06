@@ -283,7 +283,7 @@ export function setTaskAssignee(element: Base, type: number, assignee: string) {
 
   const modeling = store.getModeling
   const prefix = editor.getProcessEngine
-  if (type in [1, 2, 3]) {
+  if ([1, 2, 3, 4].includes(type)) {
     modeling.updateProperties(element, {
       [`${prefix}:assigneeType`]: type,
       [`${prefix}:assignee`]: assignee
@@ -340,7 +340,8 @@ export function setTaskCountersign(element: Base, value: Countersign) {
         [`${prefix}:pass`]: value.pass,
         [`${prefix}:noPass`]: value.noPass
       }),
-      [`${prefix}:assignee`]: '${_PSH_COUNTERSIGN_ASSIGNEE}'
+      [`${prefix}:assignee`]: '${_PSH_COUNTERSIGN_ASSIGNEE}',
+      [`${prefix}:assigneeType`]: undefined
     })
   } else {
     modeling.updateProperties(element, {

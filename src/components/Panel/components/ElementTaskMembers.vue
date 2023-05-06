@@ -333,10 +333,14 @@
       user.value.candidateGroupsRules = undefined
     }
     user.value.countersign = getTaskCountersign(modeler.getActive as Base)
-  }, 300)
+  }, 200)
 
   const handleCountersignChange = () => {
     setTaskCountersign(modeler.getActive as Base, user.value.countersign)
+    if (!user.value.countersign.enable) {
+      user.value.assigneeType = 0
+      user.value.assignee = ''
+    }
   }
 
   onMounted(() => {
