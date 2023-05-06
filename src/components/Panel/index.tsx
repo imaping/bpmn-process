@@ -17,8 +17,6 @@ import { isStartInitializable } from '@/bo-utils/initiatorUtil'
 
 import ElementGenerations from './components/ElementGenerations.vue'
 import ElementConditional from './components/ElementConditional.vue'
-import ElementExecutionListeners from './components/ElementExecutionListeners.vue'
-import ElementTaskListeners from './components/ElementTaskListeners.vue'
 import ElementTaskEvents from './components/ElementTaskEvents.vue'
 import ElementTaskBack from './components/ElementTaskBack.vue'
 import ElementTaskMembers from './components/ElementTaskMembers.vue'

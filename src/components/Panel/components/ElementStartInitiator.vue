@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, onMounted, ref } from 'vue'
+  import { computed, defineComponent, onMounted, onUnmounted, ref } from 'vue'
   import { getInitiatorValue, setInitiatorValue } from '@/bo-utils/initiatorUtil'
   import modeler from '@/store/modeler'
   import { Base } from 'diagram-js/lib/model'
@@ -36,7 +36,10 @@
 
       onMounted(() => {
         getElementInitiator()
+        EventEmitter.on('element-update', getElementInitiator)
+      })
 
+      onUnmounted(() => {
         EventEmitter.on('element-update', getElementInitiator)
       })
 

@@ -148,9 +148,8 @@
               if (!getTaskFunction(modeler.getActive as Base)) {
                 setTaskFunction(modeler.getActive as Base, categoryCode)
               }
-              reloadData().then(() => {
-                showModal.value = false
-              })
+              reloadData()
+              showModal.value = false
             } else {
               window.__messageBox.warning(response.data.message)
             }

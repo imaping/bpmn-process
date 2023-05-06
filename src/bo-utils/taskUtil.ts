@@ -12,6 +12,7 @@ import {
 import { getListenersContainer } from '@/bo-utils/executionListenersUtil'
 import { ModdleElement } from 'moddle'
 import { createScript } from '@/bo-utils/scriptUtil'
+import { Countersign } from '@/types/Countersign'
 
 export function getTaskListenerTypes(element: Base) {
   if (is(element, 'bpmn:UserTask')) {
@@ -319,4 +320,61 @@ export function getTaskCandidateGroup(element: Base) {
   const modeling = store.getModeling
   const prefix = editor.getProcessEngine
   return element.businessObject.get(`${prefix}:candidateGroups`)
+}
+
+export function setTaskCountersign(element: Base, value: Countersign) {
+  const store = modelerStore()
+  const editor = editorStore()
+  const moddle = modeler().getModdle!
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  if (value.enable) {
+    modeling.updateProperties(element, {
+      loopCharacteristics: moddle.create('bpmn:MultiInstanceLoopCharacteristics', {
+        isSequential: value.runningType == 2,
+        collection: value.collection,
+        elementVariable: '_PSH_COUNTERSIGN_ASSIGNEE',
+        [`${prefix}:radio`]: value.ratio,
+        [`${prefix}:all`]: value.all,
+        [`${prefix}:type`]: value.type,
+        [`${prefix}:pass`]: value.pass,
+        [`${prefix}:noPass`]: value.noPass
+      }),
+      [`${prefix}:assignee`]: '${_PSH_COUNTERSIGN_ASSIGNEE}'
+    })
+  } else {
+    modeling.updateProperties(element, {
+      loopCharacteristics: undefined,
+      [`${prefix}:assignee`]: undefined
+    })
+  }
+}
+
+export function getTaskCountersign(element: Base): Countersign {
+  const editor = editorStore()
+  const prefix = editor.getProcessEngine
+  const loopCharacteristics = element.businessObject.loopCharacteristics
+  if (loopCharacteristics) {
+    return {
+      collection: loopCharacteristics.collection || '',
+      enable: true,
+      type: loopCharacteristics.get(`${prefix}:type`) || 1,
+      ratio: loopCharacteristics.get(`${prefix}:ratio`) || 50,
+      all: loopCharacteristics.get(`${prefix}:all`) || false,
+      runningType: loopCharacteristics.isSequential ? 2 : 1,
+      pass: loopCharacteristics.get(`${prefix}:pass`) || 1,
+      noPass: loopCharacteristics.get(`${prefix}:noPass`) || 1
+    }
+  } else {
+    return {
+      collection: '',
+      enable: false,
+      type: 1,
+      ratio: 50,
+      all: false,
+      runningType: 1,
+      pass: 1,
+      noPass: 1
+    }
+  }
 }

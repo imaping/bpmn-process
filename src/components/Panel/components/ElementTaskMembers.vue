@@ -12,7 +12,13 @@
         label-width="auto"
         style="width: 90%; margin-left: 20px"
       >
-        <n-form-item label="指定用户:">
+        <n-form-item label="启动会签:">
+          <n-switch
+            v-model:value="user.countersign.enable"
+            @update:value="handleCountersignChange"
+          />
+        </n-form-item>
+        <n-form-item v-show="!user.countersign.enable" label="指定用户:">
           <n-input v-model:value="user.assignee" placeholder="" disabled />
           <n-button
             class="edit-button"
@@ -27,7 +33,7 @@
             </template>
           </n-button>
         </n-form-item>
-        <n-form-item label="候选用户:">
+        <n-form-item :label="user.countersign.enable ? '会签用户:' : '候选用户:'">
           <n-input v-model:value="computeCandidateGroups" type="textarea" placeholder="" disabled />
           <n-button class="edit-button" circle size="small" @click="showUserRulerSelector = true">
             <template #icon>
@@ -36,6 +42,75 @@
               </n-icon>
             </template>
           </n-button>
+        </n-form-item>
+        <n-form-item v-show="user.countersign.enable" label="全部处理:">
+          <n-switch v-model:value="user.countersign.all" @update:value="handleCountersignChange" />
+        </n-form-item>
+        <n-form-item v-show="user.countersign.enable" label="执行方式:">
+          <n-select
+            v-model:value="user.countersign.runningType"
+            :options="[
+              {
+                label: '并行',
+                value: 1
+              },
+              {
+                label: '串行',
+                value: 2
+              }
+            ]"
+            @update:value="handleCountersignChange"
+          />
+        </n-form-item>
+        <n-form-item v-show="user.countersign.enable" label="类型:">
+          <n-select
+            v-model:value="user.countersign.type"
+            :options="counterSignTypeOptions"
+            @update:value="handleCountersignChange"
+          />
+        </n-form-item>
+        <n-form-item v-show="user.countersign.enable && user.countersign.type == 1" label="比例:">
+          <n-select
+            v-model:value="user.countersign.ratio"
+            :options="
+              Array.from({ length: 10 }).map((item, index) => {
+                const value = (index + 1) * 10
+                return {
+                  label: value + '%',
+                  value: value
+                }
+              })
+            "
+            @update:value="handleCountersignChange"
+          />
+        </n-form-item>
+        <n-form-item v-show="user.countersign.enable" label="通过:">
+          <n-select
+            v-model:value="user.countersign.pass"
+            :options="[
+              {
+                label: '流转后置节点',
+                value: 1
+              }
+            ]"
+            @update:value="handleCountersignChange"
+          />
+        </n-form-item>
+        <n-form-item v-show="user.countersign.enable" label="不通过:">
+          <n-select
+            v-model:value="user.countersign.noPass"
+            :options="[
+              {
+                label: '流转后置节点',
+                value: 1
+              },
+              {
+                label: '回退前置节点',
+                value: 2
+              }
+            ]"
+            @update:value="handleCountersignChange"
+          />
         </n-form-item>
       </n-form>
     </div>
@@ -73,7 +148,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
   import modelerStore from '@/store/modeler'
   import { NButton, NInput } from 'naive-ui'
   import UserRulerSelector from '@/components/Panel/components/SubChild/UserRulerSelector.vue'
@@ -82,13 +157,16 @@
   import {
     getTaskAssignee,
     getTaskCandidateGroup,
+    getTaskCountersign,
     setTaskAssignee,
-    setTaskCandidateGroup
+    setTaskCandidateGroup,
+    setTaskCountersign
   } from '@/bo-utils/taskUtil'
   import { Base } from 'diagram-js/lib/model'
   import { debounce } from 'min-dash'
   import axios from '@/axios'
   import EventEmitter from '@/utils/EventEmitter'
+  import { Countersign } from '@/types/Countersign'
 
   const modeler = modelerStore()
 
@@ -99,14 +177,40 @@
     assignee: string
     candidateGroups: string
     candidateGroupsRules: Array<any> | undefined
+    countersign: Countersign
   }
 
   const user = ref<User>({
     assigneeType: 0,
     assignee: '',
     candidateGroups: '',
-    candidateGroupsRules: undefined
+    candidateGroupsRules: undefined,
+    countersign: {
+      collection: '',
+      enable: false,
+      type: 1,
+      ratio: 50,
+      all: false,
+      runningType: 1,
+      pass: 1,
+      noPass: 1
+    }
   })
+
+  const counterSignTypeOptions = [
+    {
+      label: '比例通过',
+      value: 1
+    },
+    {
+      label: '任意一票通过',
+      value: 2
+    },
+    {
+      label: '任意一票否决',
+      value: 3
+    }
+  ]
 
   const userAssigneeSelectorRef = ref<any>()
 
@@ -138,6 +242,10 @@
         user.value.candidateGroups = JSON.stringify(rulerData)
         user.value.candidateGroupsRules = toRaw(rulerData)
         setTaskCandidateGroup(modeler.getActive as Base, categoryCode)
+        if (user.value.countersign.enable) {
+          user.value.countersign.collection = categoryCode
+          handleCountersignChange()
+        }
         showUserRulerSelector.value = false
       })
       .catch((error) => {
@@ -224,7 +332,12 @@
       user.value.candidateGroups = ''
       user.value.candidateGroupsRules = undefined
     }
-  }, 200)
+    user.value.countersign = getTaskCountersign(modeler.getActive as Base)
+  }, 300)
+
+  const handleCountersignChange = () => {
+    setTaskCountersign(modeler.getActive as Base, user.value.countersign)
+  }
 
   onMounted(() => {
     reloadData()
