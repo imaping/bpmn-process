@@ -9,7 +9,7 @@ import {
   getExtensionElementsList,
   removeExtensionElements
 } from '@/utils/BpmnExtensionElementsUtil'
-import { getListenersContainer } from '@/bo-utils/executionListenersUtil'
+import { getExecutionListeners, getListenersContainer } from '@/bo-utils/executionListenersUtil'
 import { ModdleElement } from 'moddle'
 import { createScript } from '@/bo-utils/scriptUtil'
 import { Countersign } from '@/types/Countersign'
@@ -328,7 +328,27 @@ export function setTaskCountersign(element: Base, value: Countersign) {
   const moddle = modeler().getModdle!
   const modeling = store.getModeling
   const prefix = editor.getProcessEngine
+  let extensionElements = element.businessObject.get('extensionElements')
   if (value.enable) {
+    let extensionElementToAdd = [
+      moddle.create(`${prefix}:ExecutionListener`, {
+        event: 'start',
+        id: '__system__',
+        expression: '${multiInstanceStartListener.notify(execution)}'
+      }),
+      moddle.create(`${prefix}:ExecutionListener`, {
+        event: 'end',
+        id: '__system__',
+        expression: '${multiInstanceEndListener.notify(execution)}'
+      })
+    ]
+    if (!extensionElements) {
+      extensionElements = moddle.create('bpmn:ExtensionElements', {
+        values: []
+      })
+    }
+    extensionElementToAdd = extensionElementToAdd.concat(extensionElements.get('values'))
+    extensionElements.values = extensionElementToAdd
     modeling.updateProperties(element, {
       loopCharacteristics: moddle.create('bpmn:MultiInstanceLoopCharacteristics', {
         isSequential: value.runningType == 2,
@@ -338,14 +358,29 @@ export function setTaskCountersign(element: Base, value: Countersign) {
         [`${prefix}:all`]: value.all,
         [`${prefix}:type`]: value.type,
         [`${prefix}:pass`]: value.pass,
-        [`${prefix}:noPass`]: value.noPass
+        [`${prefix}:noPass`]: value.noPass,
+        completionCondition: moddle.create('bpmn:Expression', {
+          body: '${multiInstanceCompleteEvent.complete(execution)}'
+        })
       }),
+      extensionElements,
       [`${prefix}:assignee`]: '${_PSH_COUNTERSIGN_ASSIGNEE}',
       [`${prefix}:assigneeType`]: undefined
     })
   } else {
+    const allListeners = getExecutionListeners(element).concat(getTaskListeners(element))
+    const originListeners = allListeners.filter((d) => {
+      const id = d.get('id')
+      return !(id && id.startsWith('__system__'))
+    })
     modeling.updateProperties(element, {
       loopCharacteristics: undefined,
+      extensionElements:
+        originListeners.length > 0
+          ? moddle.create('bpmn:ExtensionElements', {
+              values: originListeners
+            })
+          : undefined,
       [`${prefix}:assignee`]: undefined
     })
   }

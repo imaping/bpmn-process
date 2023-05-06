@@ -123,7 +123,7 @@
         const listener: ExecutionListenerForm = {
           type: 'expression',
           event: result.listenerType,
-          expression: `\${restfulExecutionEvent.execute(${result.code})}`
+          expression: `\${restfulExecutionEvent.execute(${result.code},execution)}`
         }
         switch (result.listenerType) {
           case 'create':
@@ -173,12 +173,15 @@
   const reloadData = debounce(() => {
     data.value.splice(0, data.value.length)
     let originListeners = getExecutionListeners(modelerStore.getActive as Base)
-    const reg = /\${restfulExecutionEvent.execute\((.*)\)}/
+    const reg = /\${restfulExecutionEvent.execute\((.*),(.*)\)}/
     if (isUserTask(modelerStore.getActive)) {
       const taskListeners = getTaskListeners(modelerStore.getActive as Base)
       originListeners = originListeners.concat(taskListeners)
     }
-    originListeners = originListeners.filter((d) => d.expression)
+    originListeners = originListeners.filter((d) => {
+      const id = d.get('id')
+      return id && id.startsWith('__system__') ? false : d.expression
+    })
     let listeners = originListeners.map((item) => {
       const regExpExecArray = reg.exec(item.expression)
       const listenerTypeLabel = listenerTypes.find((d) => d.value === item.event)?.label
