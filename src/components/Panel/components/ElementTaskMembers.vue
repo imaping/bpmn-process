@@ -217,6 +217,16 @@
   const showUserRulerSelector = ref<boolean>(false)
   const showUserAssigneeSelector = ref<boolean>(false)
 
+  const candidateGroupsComputed = computed<string>(() => {
+    if (user.value.candidateGroups && user.value.candidateGroups !== '') {
+      return user.value.candidateGroups
+    }
+    if (user.value.countersign.enable) {
+      return user.value.countersign.collection
+    }
+    return modeler.getActive.businessObject.$parent.id + '_' + modeler.getActiveId
+  })
+
   const onUserRulerSelectorPositiveClick = () => {
     const rulerData = toRaw(userRulerSelectorRef.value.rules)
     for (let index: number in rulerData) {
@@ -227,24 +237,23 @@
       ) {
         window.__messageBox.warning(`第${++index}行数据不能为空`)
         return false
+      } else {
+        rulerData[index].sort = index
       }
     }
-
-    const processId = modeler.getActive.businessObject.$parent.id
-    const activeId = modeler.getActiveId
-    const categoryCode = processId + '_' + activeId
     axios
       .post('/workflow/rest/candidate-rules', {
-        categoryCode: categoryCode,
+        categoryCode: candidateGroupsComputed.value,
         rules: rulerData
       })
-      .then((response) => {
-        user.value.candidateGroups = JSON.stringify(rulerData)
+      .then(() => {
         user.value.candidateGroupsRules = toRaw(rulerData)
-        setTaskCandidateGroup(modeler.getActive as Base, categoryCode)
         if (user.value.countersign.enable) {
-          user.value.countersign.collection = categoryCode
+          user.value.countersign.collection = candidateGroupsComputed.value
           handleCountersignChange()
+        } else {
+          user.value.candidateGroups = candidateGroupsComputed.value
+          setTaskCandidateGroup(modeler.getActive as Base, candidateGroupsComputed.value)
         }
         showUserRulerSelector.value = false
       })
@@ -312,30 +321,39 @@
   }
 
   const reloadData = debounce(() => {
-    const taskAssignee = getTaskAssignee(modeler.getActive as Base)
-    user.value.assigneeType = taskAssignee.assigneeType || ''
-    user.value.assignee = taskAssignee.assignee || ''
-    const taskCandidateGroup = getTaskCandidateGroup(modeler.getActive as Base)
-    if (taskCandidateGroup) {
-      axios.get(`/workflow/rest/candidate-rules/${taskCandidateGroup}`).then((response) => {
-        if (
-          response.data.status === 1 &&
-          response.data.content &&
-          response.data.content.rules &&
-          response.data.content.rules.length > 0
-        ) {
-          user.value.candidateGroups = JSON.stringify(response.data.content.rules)
-          user.value.candidateGroupsRules = response.data.content.rules
-        }
-      })
-    } else {
-      user.value.candidateGroups = ''
-      user.value.candidateGroupsRules = undefined
-    }
     user.value.countersign = getTaskCountersign(modeler.getActive as Base)
+    let taskCandidateGroup
+    if (!user.value.countersign.enable) {
+      const taskAssignee = getTaskAssignee(modeler.getActive as Base)
+      user.value.assigneeType = taskAssignee.assigneeType || ''
+      user.value.assignee = taskAssignee.assignee || ''
+      taskCandidateGroup = getTaskCandidateGroup(modeler.getActive as Base)
+      user.value.candidateGroups = taskCandidateGroup
+    } else {
+      taskCandidateGroup = user.value.countersign.collection
+    }
+    if (!taskCandidateGroup) {
+      taskCandidateGroup = candidateGroupsComputed.value
+    }
+    axios.get(`/workflow/rest/candidate-rules/${taskCandidateGroup}`).then((response) => {
+      if (
+        response.data.status === 1 &&
+        response.data.content &&
+        response.data.content.rules &&
+        response.data.content.rules.length > 0
+      ) {
+        user.value.candidateGroupsRules = response.data.content.rules
+      }
+    })
   }, 200)
 
   const handleCountersignChange = () => {
+    if (user.value.countersign.enable) {
+      user.value.countersign.collection = candidateGroupsComputed.value
+      user.value.candidateGroups = ''
+    } else {
+      user.value.candidateGroups = user.value.countersign.collection
+    }
     setTaskCountersign(modeler.getActive as Base, user.value.countersign)
     if (!user.value.countersign.enable) {
       user.value.assigneeType = 0

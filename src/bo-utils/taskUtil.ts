@@ -365,7 +365,8 @@ export function setTaskCountersign(element: Base, value: Countersign) {
       }),
       extensionElements,
       [`${prefix}:assignee`]: '${_PSH_COUNTERSIGN_ASSIGNEE}',
-      [`${prefix}:assigneeType`]: undefined
+      [`${prefix}:assigneeType`]: undefined,
+      [`${prefix}:candidateGroups`]: undefined
     })
   } else {
     const allListeners = getExecutionListeners(element).concat(getTaskListeners(element))
@@ -381,7 +382,8 @@ export function setTaskCountersign(element: Base, value: Countersign) {
               values: originListeners
             })
           : undefined,
-      [`${prefix}:assignee`]: undefined
+      [`${prefix}:assignee`]: undefined,
+      [`${prefix}:candidateGroups`]: value.collection
     })
   }
 }
