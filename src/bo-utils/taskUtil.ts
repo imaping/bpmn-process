@@ -330,22 +330,47 @@ export function setTaskCountersign(element: Base, value: Countersign) {
   const prefix = editor.getProcessEngine
   let extensionElements = element.businessObject.get('extensionElements')
   if (value.enable) {
-    let extensionElementToAdd = [
-      moddle.create(`${prefix}:ExecutionListener`, {
-        event: 'start',
-        id: '__system__',
-        expression: '${multiInstanceStartListener.notify(execution)}'
-      }),
-      moddle.create(`${prefix}:ExecutionListener`, {
-        event: 'end',
-        id: '__system__',
-        expression: '${multiInstanceEndListener.notify(execution)}'
-      })
-    ]
     if (!extensionElements) {
       extensionElements = moddle.create('bpmn:ExtensionElements', {
         values: []
       })
+    }
+    let extensionElementToAdd: ModdleElement[] = []
+    if (
+      !extensionElements
+        .get('values')
+        .some(
+          (d) =>
+            d.get('id') === '__system__' &&
+            d.expression === '${multiInstanceStartListener.notify(execution)}' &&
+            d.event === 'start'
+        )
+    ) {
+      extensionElementToAdd.push(
+        moddle.create(`${prefix}:ExecutionListener`, {
+          event: 'start',
+          id: '__system__',
+          expression: '${multiInstanceStartListener.notify(execution)}'
+        })
+      )
+    }
+    if (
+      !extensionElements
+        .get('values')
+        .some(
+          (d) =>
+            d.get('id') === '__system__' &&
+            d.expression === '${multiInstanceEndListener.notify(execution)}' &&
+            d.event === 'end'
+        )
+    ) {
+      extensionElementToAdd.push(
+        moddle.create(`${prefix}:ExecutionListener`, {
+          event: 'end',
+          id: '__system__',
+          expression: '${multiInstanceEndListener.notify(execution)}'
+        })
+      )
     }
     extensionElementToAdd = extensionElementToAdd.concat(extensionElements.get('values'))
     extensionElements.values = extensionElementToAdd

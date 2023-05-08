@@ -222,7 +222,9 @@
       return user.value.candidateGroups
     }
     if (user.value.countersign.enable) {
-      return user.value.countersign.collection
+      if (user.value.countersign.collection != '') {
+        return user.value.countersign.collection
+      }
     }
     return modeler.getActive.businessObject.$parent.id + '_' + modeler.getActiveId
   })
