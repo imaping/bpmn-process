@@ -342,7 +342,7 @@ export function setTaskCountersign(element: Base, value: Countersign) {
         .some(
           (d) =>
             d.get('id') === '__system__' &&
-            d.expression === '${multiInstanceStartListener.notify(execution)}' &&
+            d.expression === '${multiInstanceStartExecutionListener.notify(execution)}' &&
             d.event === 'start'
         )
     ) {
@@ -350,7 +350,7 @@ export function setTaskCountersign(element: Base, value: Countersign) {
         moddle.create(`${prefix}:ExecutionListener`, {
           event: 'start',
           id: '__system__',
-          expression: '${multiInstanceStartListener.notify(execution)}'
+          expression: '${multiInstanceStartExecutionListener.notify(execution)}'
         })
       )
     }
@@ -360,15 +360,15 @@ export function setTaskCountersign(element: Base, value: Countersign) {
         .some(
           (d) =>
             d.get('id') === '__system__' &&
-            d.expression === '${multiInstanceEndListener.notify(execution)}' &&
-            d.event === 'end'
+            d.expression === '${multiInstanceEndTaskListener.notify(task)}' &&
+            d.event === 'complete'
         )
     ) {
       extensionElementToAdd.push(
-        moddle.create(`${prefix}:ExecutionListener`, {
-          event: 'end',
+        moddle.create(`${prefix}:TaskListener`, {
+          event: 'complete',
           id: '__system__',
-          expression: '${multiInstanceEndListener.notify(execution)}'
+          expression: '${multiInstanceEndTaskListener.notify(task)}'
         })
       )
     }
@@ -379,16 +379,23 @@ export function setTaskCountersign(element: Base, value: Countersign) {
         isSequential: value.runningType == 2,
         collection: value.collection,
         elementVariable: '_PSH_COUNTERSIGN_ASSIGNEE',
-        [`${prefix}:radio`]: value.ratio,
-        [`${prefix}:all`]: value.all,
-        [`${prefix}:type`]: value.type,
-        [`${prefix}:pass`]: value.pass,
-        [`${prefix}:noPass`]: value.noPass,
         completionCondition: moddle.create('bpmn:Expression', {
-          body: '${multiInstanceCompleteEvent.complete(execution)}'
+          body: '${multiInstanceCompleteExecutionEvent.complete(execution)}'
         })
       }),
       extensionElements,
+      [`${prefix}:ratio`]: value.ratio,
+      [`${prefix}:all`]: value.all,
+      [`${prefix}:type`]: value.type,
+      [`${prefix}:pass`]: value.pass,
+      [`${prefix}:noPass`]: value.noPass,
+      [`${prefix}:votePowerType`]: value.votePowerType,
+      [`${prefix}:votePowerAssignee`]:
+        value.votePowerType === 0
+          ? undefined
+          : value.votePowerAssignee !== ''
+          ? value.votePowerAssignee
+          : undefined,
       [`${prefix}:assignee`]: '${_PSH_COUNTERSIGN_ASSIGNEE}',
       [`${prefix}:assigneeType`]: undefined,
       [`${prefix}:candidateGroups`]: undefined
@@ -407,7 +414,14 @@ export function setTaskCountersign(element: Base, value: Countersign) {
               values: originListeners
             })
           : undefined,
+      [`${prefix}:radio`]: undefined,
+      [`${prefix}:all`]: undefined,
+      [`${prefix}:type`]: undefined,
+      [`${prefix}:pass`]: undefined,
+      [`${prefix}:noPass`]: undefined,
       [`${prefix}:assignee`]: undefined,
+      [`${prefix}:votePowerType`]: undefined,
+      [`${prefix}:votePowerAssignee`]: undefined,
       [`${prefix}:candidateGroups`]: value.collection
     })
   }
@@ -421,12 +435,14 @@ export function getTaskCountersign(element: Base): Countersign {
     return {
       collection: loopCharacteristics.collection || '',
       enable: true,
-      type: loopCharacteristics.get(`${prefix}:type`) || 1,
-      ratio: loopCharacteristics.get(`${prefix}:ratio`) || 50,
-      all: loopCharacteristics.get(`${prefix}:all`) || false,
+      type: parseInt(element.businessObject.get(`${prefix}:type`)) || 1,
+      ratio: parseInt(element.businessObject.get(`${prefix}:ratio`)) || 50,
+      all: element.businessObject.get(`${prefix}:all`) || false,
       runningType: loopCharacteristics.isSequential ? 2 : 1,
-      pass: loopCharacteristics.get(`${prefix}:pass`) || 1,
-      noPass: loopCharacteristics.get(`${prefix}:noPass`) || 1
+      pass: parseInt(element.businessObject.get(`${prefix}:pass`)) || 1,
+      noPass: parseInt(element.businessObject.get(`${prefix}:noPass`)) || 1,
+      votePowerType: parseInt(element.businessObject.get(`${prefix}:votePowerType`)) || 0,
+      votePowerAssignee: element.businessObject.get(`${prefix}:votePowerAssignee`) || ''
     }
   } else {
     return {
@@ -437,7 +453,9 @@ export function getTaskCountersign(element: Base): Countersign {
       all: false,
       runningType: 1,
       pass: 1,
-      noPass: 1
+      noPass: 1,
+      votePowerType: 0,
+      votePowerAssignee: ''
     }
   }
 }

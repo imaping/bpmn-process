@@ -112,6 +112,45 @@
             @update:value="handleCountersignChange"
           />
         </n-form-item>
+        <n-form-item
+          v-show="user.countersign.enable && user.countersign.type === 1"
+          label="一票类型:"
+        >
+          <n-select
+            v-model:value="user.countersign.votePowerType"
+            clearable
+            :options="[
+              {
+                label: '禁用',
+                value: 0
+              },
+              {
+                label: '一票通过',
+                value: 1
+              },
+              {
+                label: '一票否决',
+                value: 2
+              }
+            ]"
+            @update:value="handleCountersignChange"
+          />
+        </n-form-item>
+        <n-form-item
+          v-show="
+            user.countersign.enable &&
+            user.countersign.type === 1 &&
+            user.countersign.votePowerType != 0
+          "
+          label="一票用户:"
+        >
+          <n-select
+            v-model:value="user.countersign.votePowerAssignee"
+            clearable
+            :options="votePowerAssignees"
+            @update:value="handleCountersignChange"
+          />
+        </n-form-item>
       </n-form>
     </div>
     <n-modal
@@ -193,7 +232,9 @@
       all: false,
       runningType: 1,
       pass: 1,
-      noPass: 1
+      noPass: 1,
+      votePowerType: 0,
+      votePowerAssignee: ''
     }
   })
 
@@ -217,6 +258,7 @@
   const showUserRulerSelector = ref<boolean>(false)
   const showUserAssigneeSelector = ref<boolean>(false)
 
+  const votePowerAssignees = ref([])
   const candidateGroupsComputed = computed<string>(() => {
     if (user.value.candidateGroups && user.value.candidateGroups !== '') {
       return user.value.candidateGroups
@@ -229,7 +271,7 @@
     return modeler.getActive.businessObject.$parent.id + '_' + modeler.getActiveId
   })
 
-  const onUserRulerSelectorPositiveClick = () => {
+  const onUserRulerSelectorPositiveClick = async () => {
     const rulerData = toRaw(userRulerSelectorRef.value.rules)
     for (let index: number in rulerData) {
       if (
@@ -243,26 +285,48 @@
         rulerData[index].sort = index
       }
     }
-    axios
-      .post('/workflow/rest/candidate-rules', {
+    try {
+      await axios.post('/workflow/rest/candidate-rules', {
         categoryCode: candidateGroupsComputed.value,
         rules: rulerData
       })
-      .then(() => {
-        user.value.candidateGroupsRules = toRaw(rulerData)
-        if (user.value.countersign.enable) {
-          user.value.countersign.collection = candidateGroupsComputed.value
-          handleCountersignChange()
-        } else {
-          user.value.candidateGroups = candidateGroupsComputed.value
-          setTaskCandidateGroup(modeler.getActive as Base, candidateGroupsComputed.value)
+      user.value.candidateGroupsRules = toRaw(rulerData)
+      if (user.value.countersign.enable) {
+        user.value.countersign.collection = candidateGroupsComputed.value
+        await setVotePowerAssignees()
+        handleCountersignChange()
+      } else {
+        user.value.candidateGroups = candidateGroupsComputed.value
+        setTaskCandidateGroup(modeler.getActive as Base, candidateGroupsComputed.value)
+      }
+      showUserRulerSelector.value = false
+    } catch (e) {
+      window.__messageBox.error(e.message)
+      return false
+    }
+  }
+
+  const setVotePowerAssignees = async () => {
+    if (user.value.countersign.enable) {
+      if (user.value.countersign.votePowerType !== 0 && user.value.countersign.collection !== '') {
+        const response = await axios.get(
+          `/workflow/rest/candidate-rules/${user.value.countersign.collection}/users`
+        )
+        if (response.data.status === 1) {
+          if (!response.data.content.includes(user.value.countersign.votePowerAssignee)) {
+            user.value.countersign.votePowerAssignee = ''
+          }
+          votePowerAssignees.value = response.data.content.map((d) => {
+            return {
+              label: d,
+              value: d
+            }
+          })
+          return
         }
-        showUserRulerSelector.value = false
-      })
-      .catch((error) => {
-        window.__messageBox.error(error.message)
-        return false
-      })
+      }
+    }
+    votePowerAssignees.value = []
   }
 
   const computeCandidateGroups = computed(() => {
@@ -322,7 +386,7 @@
     return false
   }
 
-  const reloadData = debounce(() => {
+  const reloadData = debounce(async () => {
     user.value.countersign = getTaskCountersign(modeler.getActive as Base)
     let taskCandidateGroup
     if (!user.value.countersign.enable) {
@@ -332,6 +396,7 @@
       taskCandidateGroup = getTaskCandidateGroup(modeler.getActive as Base)
       user.value.candidateGroups = taskCandidateGroup
     } else {
+      await setVotePowerAssignees()
       taskCandidateGroup = user.value.countersign.collection
     }
     if (!taskCandidateGroup) {
@@ -349,10 +414,14 @@
     })
   }, 200)
 
-  const handleCountersignChange = () => {
+  const handleCountersignChange = async () => {
     if (user.value.countersign.enable) {
       user.value.countersign.collection = candidateGroupsComputed.value
       user.value.candidateGroups = ''
+      await setVotePowerAssignees()
+      if (user.value.countersign.type !== 1) {
+        user.value.countersign.votePowerType = 0
+      }
     } else {
       user.value.candidateGroups = user.value.countersign.collection
     }

@@ -119,23 +119,25 @@
           `已存在事件类型=[${result.listenerTypeLabel}],事件代码=[${result.code}]的记录`
         )
       } else {
-        //
-        const listener: ExecutionListenerForm = {
-          type: 'expression',
-          event: result.listenerType,
-          expression: `\${restfulExecutionEvent.execute(${result.code},execution)}`
-        }
         switch (result.listenerType) {
           case 'create':
           case 'assignment':
           case 'complete':
           case 'delete':
-            addTaskListener(modelerStore.getActive, listener)
+            addTaskListener(modelerStore.getActive, {
+              type: 'expression',
+              event: result.listenerType,
+              expression: `\${restfulExecutionEvent.execute(${result.code},task)}`
+            })
             break
           case 'start':
           case 'end':
           case 'take':
-            addExecutionListener(modelerStore.getActive, listener)
+            addExecutionListener(modelerStore.getActive, {
+              type: 'expression',
+              event: result.listenerType,
+              expression: `\${restfulExecutionEvent.execute(${result.code},execution)}`
+            })
             break
         }
         data.value.push(result)

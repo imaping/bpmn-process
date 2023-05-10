@@ -10,4 +10,6 @@ export type Countersign = {
   pass: 1 | 2
   noPass: 1 | 2
   collection: string
+  votePowerType: 0 | 1 | 2
+  votePowerAssignee: string
 }
