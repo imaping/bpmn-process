@@ -2,7 +2,7 @@
   <n-collapse-item name="element-task-back">
     <template #header>
       <collapse-title :title="$t('panel.taskBack')">
-        <lucide-icon name="Radio" />
+        <lucide-icon name="RotateCcw" />
       </collapse-title>
     </template>
     <div class="element-extension-task-back">
@@ -13,7 +13,7 @@
           @update:value="handleBackTypeChange"
         />
       </edit-item>
-      <edit-item key="backNode" label="用户任务" v-if="backType === '1'">
+      <edit-item v-if="backType === '1'" key="backNode" label="用户任务">
         <n-select
           v-model:value="backNode"
           :options="backNodes"

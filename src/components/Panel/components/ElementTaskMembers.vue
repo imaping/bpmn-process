@@ -187,7 +187,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, onBeforeUnmount, onMounted, ref, toRaw, watch } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref, toRaw } from 'vue'
   import modelerStore from '@/store/modeler'
   import { NButton, NInput } from 'naive-ui'
   import UserRulerSelector from '@/components/Panel/components/SubChild/UserRulerSelector.vue'

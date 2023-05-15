@@ -124,6 +124,80 @@ export function getTaskButtons(element: Base): string | undefined {
  *
  * @param element
  * @param value 开启或关闭
+ * @param type 抄送方式
+ * @param copyValue 抄送值
+ */
+export function setCopyButton(
+  element: Base,
+  value: boolean,
+  type?: string | undefined,
+  copyValue?: string | undefined
+) {
+  const store = modelerStore()
+  const editor = editorStore()
+
+  const modeling = store.getModeling
+  const prefix = editor.getProcessEngine
+  const taskButtons = getTaskButtons(element)
+  let taskButtonArray: string[] = []
+  if (taskButtons) {
+    taskButtonArray = taskButtons.split(',')
+  }
+  const indexOf = taskButtonArray.indexOf('copy')
+  if (!value) {
+    if (indexOf > -1) {
+      taskButtonArray.splice(indexOf, 1)
+    }
+    modeling.updateProperties(element, {
+      [`${prefix}:copyType`]: undefined,
+      [`${prefix}:copyValue`]: undefined,
+      [`${prefix}:buttons`]:
+        taskButtonArray && taskButtonArray.length > 0 ? taskButtonArray.join(',') : undefined
+    })
+  } else {
+    if (indexOf == -1) {
+      taskButtonArray.push('copy')
+    }
+    switch (type) {
+      case '1':
+      case '2':
+        modeling.updateProperties(element, {
+          [`${prefix}:copyType`]: type,
+          [`${prefix}:copyValue`]: copyValue,
+          [`${prefix}:buttons`]: taskButtonArray.join(',')
+        })
+        break
+      default:
+        modeling.updateProperties(element, {
+          [`${prefix}:copyType`]: type,
+          [`${prefix}:copyValue`]: undefined,
+          [`${prefix}:buttons`]: taskButtonArray.join(',')
+        })
+    }
+  }
+}
+
+export function getCopyData(element: Base) {
+  const editor = editorStore()
+  const prefix = editor.getProcessEngine
+  const taskButtons = getTaskButtons(element)
+  if (taskButtons) {
+    if (taskButtons.split(',').indexOf('copy') > -1) {
+      const copyType = element.businessObject.get(`${prefix}:copyType`)
+      const copyValue = element.businessObject.get(`${prefix}:copyValue`)
+      return {
+        copyType,
+        copyValue
+      }
+    }
+  }
+  return undefined
+}
+
+/**
+ *
+ * @param element
+ * @param value 开启或关闭
  * @param type 退回方式
  * @param backNode 退回环节id
  */

@@ -19,6 +19,7 @@ import ElementGenerations from './components/ElementGenerations.vue'
 import ElementConditional from './components/ElementConditional.vue'
 import ElementTaskEvents from './components/ElementTaskEvents.vue'
 import ElementTaskBack from './components/ElementTaskBack.vue'
+import ElementTaskCopy from './components/ElementTaskCopy.vue'
 import ElementTaskMembers from './components/ElementTaskMembers.vue'
 import ElementTaskForm from './components/ElementTaskForm.vue'
 import ElementTaskAttachment from './components/ElementTaskAttachment.vue'
@@ -43,6 +44,8 @@ const Panel = defineComponent({
 
     const renderComponents = reactive<Component[]>([])
 
+    const defaultExpandedNames = ref<string[]>([])
+
     taskStore.$subscribe((mutation, state) => {
       const active = modeler.getActive
       if (active) {
@@ -55,6 +58,7 @@ const Panel = defineComponent({
       renderComponents.splice(0, renderComponents.length)
       renderComponents.push(ElementGenerations)
       isUserTask(element) && taskStore.isAllowBack && renderComponents.push(ElementTaskBack)
+      isUserTask(element) && taskStore.isAllowCopy && renderComponents.push(ElementTaskCopy)
       isUserTask(element) && renderComponents.push(ElementTaskForm)
       isUserTask(element) && renderComponents.push(ElementTaskAttachment)
       isCanbeConditional(element) && renderComponents.push(ElementConditional)
@@ -130,7 +134,7 @@ const Panel = defineComponent({
           <p>{bpmnElementName.value}</p>
           <p>{customTranslate(currentElementType.value || 'Process')}</p>
         </div>
-        <NCollapse arrow-placement="right">
+        <NCollapse arrow-placement="right" defaultExpandedNames={defaultExpandedNames.value}>
           {renderComponents.map((component) => (
             <component is={component}></component>
           ))}
@@ -140,4 +144,4 @@ const Panel = defineComponent({
   }
 })
 
-export default Panel
+export default Panel;

@@ -57,6 +57,7 @@ export default {
   taskListenerEventType: '事件类型',
   taskListenerType: '监听器类型',
   taskBack: '退回',
+  taskCopy: '抄送',
   taskMember: '任务',
   taskForm: '表单',
   addForm: '添加表单',

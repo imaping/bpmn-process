@@ -55,7 +55,7 @@
   } from '@/bo-utils/processUtil'
   import EventEmitter from '@/utils/EventEmitter'
   import axios from '@/axios'
-  import { getTaskButtons, setRollbackButton, setTaskButtons } from '@/bo-utils/taskUtil'
+  import { getTaskButtons, setCopyButton, setRollbackButton, setTaskButtons } from "@/bo-utils/taskUtil";
   import userTaskStore from '@/store/userTask'
 
   export default defineComponent({
@@ -83,7 +83,7 @@
       EventEmitter.removeListener('element-update', this.reloadGenerationData)
     },
     methods: {
-      ...mapActions(userTaskStore, { setAllowBack: 'setAllowBack' }),
+      ...mapActions(userTaskStore, { setAllowBack: 'setAllowBack', setAllowCopy: 'setAllowCopy' }),
       reloadGenerationData: function () {
         this.isProcess = !!this.getActive && this.getActive.type === 'bpmn:Process'
         this.isUserTask = !!this.getActive && this.getActive.type === 'bpmn:UserTask'
@@ -128,6 +128,15 @@
             setRollbackButton(this.getActive as Base, false)
           } else {
             setRollbackButton(this.getActive as Base, true, '2')
+          }
+          return
+        }
+        if (button.value === 'copy') {
+          this.setAllowCopy(button.switchValue)
+          if (!button.switchValue) {
+            setCopyButton(this.getActive as Base, false)
+          } else {
+            setCopyButton(this.getActive as Base, true, '3')
           }
           return
         }
