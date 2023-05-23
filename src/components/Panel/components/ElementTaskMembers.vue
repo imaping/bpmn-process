@@ -409,6 +409,9 @@
         response.data.content.rules &&
         response.data.content.rules.length > 0
       ) {
+        if (!user.value.countersign.enable && !getTaskCandidateGroup(modeler.getActive as Base)) {
+          setTaskCandidateGroup(modeler.getActive as Base, taskCandidateGroup)
+        }
         user.value.candidateGroupsRules = response.data.content.rules
       }
     })
