@@ -17,7 +17,7 @@ export default function (modeler: Modeler) {
   modeler.on('shape.added', 2000, (event: TaskEvent) => {
     const businessObject = event.element?.businessObject
     if (isUserTask(businessObject)) {
-      if (businessObject.name === '') {
+      if (businessObject.name === undefined || businessObject.name === '') {
         businessObject.name = '用户任务 ' + userTaskNum++
       }
     }
