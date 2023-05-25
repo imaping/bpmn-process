@@ -127,7 +127,7 @@
             addTaskListener(modelerStore.getActive, {
               type: 'expression',
               event: result.listenerType,
-              expression: `\${restfulExecutionEvent.execute(${result.code},task)}`
+              expression: `\${restfulExecutionEvent.executeTaskListener(${result.code},task)}`
             })
             break
           case 'start':
@@ -136,7 +136,7 @@
             addExecutionListener(modelerStore.getActive, {
               type: 'expression',
               event: result.listenerType,
-              expression: `\${restfulExecutionEvent.execute(${result.code},execution)}`
+              expression: `\${restfulExecutionEvent.executeExecutionListener(${result.code},execution)}`
             })
             break
         }
@@ -175,7 +175,7 @@
   const reloadData = debounce(() => {
     data.value.splice(0, data.value.length)
     let originListeners = getExecutionListeners(modelerStore.getActive as Base)
-    const reg = /\${restfulExecutionEvent.execute\((.*),(.*)\)}/
+    const reg = /\${restfulExecutionEvent\.execute(TaskListener|ExecutionListener)\((.*),(.*)\)}/
     if (isUserTask(modelerStore.getActive)) {
       const taskListeners = getTaskListeners(modelerStore.getActive as Base)
       originListeners = originListeners.concat(taskListeners)
@@ -189,7 +189,7 @@
       const listenerTypeLabel = listenerTypes.find((d) => d.value === item.event)?.label
       let code = item.expression
       if (regExpExecArray && regExpExecArray.length > 1) {
-        code = regExpExecArray[1]
+        code = regExpExecArray[2]
       }
       return Object.assign({}, { listenerTypeLabel, code, event: item.event, raw: item })
     })

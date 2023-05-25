@@ -15,11 +15,15 @@ const Save = defineComponent({
         const modeler = modelerStore.getModeler!
         const processModelId = getQueryValue('id')
         const { xml } = await modeler.saveXML({ format: true, preamble: true })
-        await axios.put(`/workflow/rest/models/${processModelId}/xml`, {
+        const result = await axios.put(`/workflow/rest/models/${processModelId}/xml`, {
           editorXml: xml,
           isNewVersion: false,
           updatedAt: Date.now()
         })
+        if (result.data.status === 0) {
+          window.__messageBox.info(result.data.message)
+          return
+        }
         window.__messageBox.info('保存成功')
         if (!modeler) {
           return window.__messageBox.warning('模型加载失败，请刷新重试')
