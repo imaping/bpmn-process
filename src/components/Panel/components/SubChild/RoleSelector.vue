@@ -35,7 +35,7 @@
                 name: rowData.name
               })
             } else {
-              const index = selected.findIndex((d) => d.code === rowData.code)
+              const index = selected.findIndex((d) => d.code === rowData.type)
               if (index > -1) {
                 selected.splice(index, 1)
               }

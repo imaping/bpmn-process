@@ -413,6 +413,8 @@
           setTaskCandidateGroup(modeler.getActive as Base, taskCandidateGroup)
         }
         user.value.candidateGroupsRules = response.data.content.rules
+      } else {
+        user.value.candidateGroupsRules = []
       }
     })
   }, 200)
