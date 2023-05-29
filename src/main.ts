@@ -110,7 +110,7 @@ app.mount('#app')
 
 const store = currentUser()
 
-axios.get('management/rest/user-info').then((response) => {
+axios.get('/management/rest/user-info').then((response) => {
   if (response.data.status === 1) {
     store.setCurrentUser(response.data.content)
   }
