@@ -206,6 +206,7 @@
   import axios from '@/axios'
   import EventEmitter from '@/utils/EventEmitter'
   import { Countersign } from '@/types/Countersign'
+  import { isUserTask } from '@/bo-utils/conditionUtil'
 
   const modeler = modelerStore()
 
@@ -387,6 +388,10 @@
   }
 
   const reloadData = debounce(async () => {
+    if (!isUserTask(modeler.getActive)) {
+      EventEmitter.removeListener('element-update', reloadData)
+      return
+    }
     user.value.countersign = getTaskCountersign(modeler.getActive as Base)
     let taskCandidateGroup
     if (!user.value.countersign.enable) {
@@ -401,6 +406,7 @@
     }
     if (!taskCandidateGroup) {
       taskCandidateGroup = candidateGroupsComputed.value
+      setTaskCandidateGroup(modeler.getActive as Base, taskCandidateGroup)
     }
     axios.get(`/workflow/rest/candidate-rules/${taskCandidateGroup}`).then((response) => {
       if (
@@ -410,14 +416,13 @@
         response.data.content.rules.length > 0
       ) {
         if (!user.value.countersign.enable && !getTaskCandidateGroup(modeler.getActive as Base)) {
-          setTaskCandidateGroup(modeler.getActive as Base, taskCandidateGroup)
         }
         user.value.candidateGroupsRules = response.data.content.rules
       } else {
         user.value.candidateGroupsRules = []
       }
     })
-  }, 200)
+  }, 100)
 
   const handleCountersignChange = async () => {
     if (user.value.countersign.enable) {
