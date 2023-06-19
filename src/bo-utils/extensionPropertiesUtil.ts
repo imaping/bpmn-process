@@ -9,9 +9,11 @@ import { without } from 'min-dash'
 /////// 功能函数
 export function getExtensionProperties(element: Base): ModdleElement[] {
   const businessObject = getRelevantBusinessObject(element)
+  const editor = editorStore()
+  const prefix = editor.getProcessEngine
 
   if (!businessObject) return []
-  return getPropertiesList(businessObject) || []
+  return getPropertiesList(businessObject, `${prefix}:Properties`) || []
 }
 
 export function addExtensionProperty(element: Base, property) {
@@ -36,7 +38,7 @@ export function addExtensionProperty(element: Base, property) {
       modeling.updateModdleProperties(element, businessObject, { extensionElements })
     }
     // 判断 extensionElements 是否有 properties
-    let properties = getProperties(businessObject)
+    let properties = getProperties(businessObject, `${prefix}:Properties`)
     if (!properties) {
       properties = createModdleElement(`${prefix}:Properties`, { values: [] }, extensionElements)
       modeling.updateModdleProperties(element, extensionElements, {
@@ -54,9 +56,11 @@ export function addExtensionProperty(element: Base, property) {
 }
 
 export function removeExtensionProperty(element: Base, property: ModdleElement) {
+  const editor = editorStore()
+  const prefix = editor.getProcessEngine
   const businessObject = getRelevantBusinessObject(element)
   const extensionElements = businessObject.get('extensionElements')
-  const properties = getProperties(businessObject)
+  const properties = getProperties(businessObject, `${prefix}:Properties`)
   if (!properties) return
 
   const store = modelerStore()
@@ -80,10 +84,12 @@ function getRelevantBusinessObject(element: Base) {
   }
   return businessObject
 }
-function getPropertiesList(bo: ModdleElement): [] {
-  const properties = getProperties(bo)
+
+function getPropertiesList(bo: ModdleElement, type?: string): [] {
+  const properties = getProperties(bo, type)
   return properties && properties.get('values')
 }
-function getProperties(bo: ModdleElement): ModdleElement | null {
-  return getExtensionElementsList(bo)[0]
+
+function getProperties(bo: ModdleElement, type?: string): ModdleElement | null {
+  return getExtensionElementsList(bo, type)[0]
 }
