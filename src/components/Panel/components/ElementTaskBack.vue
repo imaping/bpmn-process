@@ -30,6 +30,7 @@
   import modelerStore from '@/store/modeler'
   import EventEmitter from '@/utils/EventEmitter'
   import { isSequenceFlow, isUserTask } from '@/bo-utils/conditionUtil'
+  import { debounce } from 'min-dash'
 
   const modeler = modelerStore()
 
@@ -42,7 +43,7 @@
     EventEmitter.removeListener('element-update', reloadTaskData)
   })
 
-  const backType = ref('2')
+  const backType = ref('3')
   const backTypes = [
     {
       label: '指定环节',
@@ -74,15 +75,17 @@
     }
   }
 
-  const reloadTaskData = () => {
-    backNodes.splice(0, backNodes.length)
-    getUserTasks(modeler.getActive, backNodes)
-    let rollBackData = getRollBackData(modeler.getActive)
-    if (rollBackData) {
-      backType.value = rollBackData.backType
-      backNode.value = rollBackData.backNode || backNode.value
+  const reloadTaskData = debounce(() => {
+    if (isUserTask(modeler.getActive)) {
+      backNodes.splice(0, backNodes.length)
+      getUserTasks(modeler.getActive, backNodes)
+      let rollBackData = getRollBackData(modeler.getActive)
+      if (rollBackData) {
+        backType.value = rollBackData.backType
+        backNode.value = rollBackData.backNode || backNode.value
+      }
     }
-  }
+  }, 300)
 
   const getUserTasks = (element: BpmnElement, userTasks: { label: string; value: string }[]) => {
     let incomings = element.incoming

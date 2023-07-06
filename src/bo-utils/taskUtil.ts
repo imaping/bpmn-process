@@ -277,7 +277,6 @@ export function getTaskForms(element: Base): string | undefined {
 export function setTaskForms(element: Base, value: string) {
   const store = modelerStore()
   const editor = editorStore()
-
   const modeling = store.getModeling
   const prefix = editor.getProcessEngine
   if (value && value !== '') {
