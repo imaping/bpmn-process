@@ -40,6 +40,7 @@
   ]
 
   const categorySelectedKeys = reactive([])
+  const categorySelectedName = ref('')
 
   let tableData = ref([])
 
@@ -77,6 +78,7 @@
         if (response.data.status === 1) {
           treeData.value = response.data.content
           categorySelectedKeys.push(response.data?.content[0]?.id)
+          categorySelectedName.value = response.data?.content[0]?.name
           getCategoryItems(response.data?.content[0]?.id)
         }
       })
@@ -111,6 +113,7 @@
       onClick() {
         categorySelectedKeys.splice(0, categorySelectedKeys.length)
         categorySelectedKeys.push(option.id)
+        categorySelectedName.value = option.name
         getCategoryItems(option.id as string)
       }
     }
@@ -125,8 +128,7 @@
       const value = tableData.value.find((d) => d.id === rowKeys[0])
       if (value) {
         eventChecked.value = toRaw(value)
-        const categoryValue = treeData.value.find((d) => d.id === categorySelectedKeys[0])
-        selectComputed.value = `已选择事件: ${categoryValue.name} => ${value.name}(${value.code})`
+        selectComputed.value = `已选择事件: ${categorySelectedName.value} => ${value.name}(${value.code})`
         return
       }
     }
