@@ -16,7 +16,7 @@ if (process.env.NODE_ENV == 'production') {
     timeout: 300000,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer AT-6-VQ1WQZ97YAqaB3xGM9SKSWddmT8VxiJJ'
+      Authorization: 'Bearer AT-13-vd-cv0lzh7htrAk-NWpXRp0EA3lS6ybl'
     }
   })
 }

@@ -318,7 +318,7 @@ export function getTaskFunction(element: Base): string | undefined {
   const editor = editorStore()
   const prefix = editor.getProcessEngine
 
-  return element.businessObject.get(`${prefix}:functionGroup`)
+  return element.businessObject.get(`${prefix}:function`)
 }
 
 export function setTaskFunction(element: Base, value: string | undefined) {
@@ -329,11 +329,11 @@ export function setTaskFunction(element: Base, value: string | undefined) {
   const prefix = editor.getProcessEngine
   if (value && value !== '') {
     modeling.updateProperties(element, {
-      [`${prefix}:functionGroup`]: value
+      [`${prefix}:function`]: value
     })
   } else {
     modeling.updateProperties(element, {
-      [`${prefix}:functionGroup`]: undefined
+      [`${prefix}:function`]: undefined
     })
   }
 }
